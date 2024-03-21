@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Chatbot Interface</title>
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+        #chatbox {
+            height: 400px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chat-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .new-destination-btn {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .new-destination-btn:hover {
+            background-color: white;
+            color: black;
+        }
+        .new-destination-btn .cloud-icon {
+            background-color: currentColor; /* Use the text color for the icon */
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M19 12l-7-5v10zM5 7v10l7-5z'/></svg>") center / contain no-repeat;
+            width: 20px; /* Adjust icon size */
+            height: 20px; /* Adjust icon size */
+            margin-right: 5px;
+            transition: background-color 0.3s; /* Smooth transition for color */
+        }
+
+        #userInput {
+            flex-grow: 1;
+            border: none;
+            padding: 10px 20px;
+            resize: none; /* For textarea */
+            overflow: auto;
+            min-height: 38px; /* Mimic default input height */
+            outline: none; /* Remove focus outline */
+            border-radius: 20px;
+        }
+        #sendButton {
+            margin-right: 10px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            outline: none; /* Remove focus outline */
+        }
+        .send-icon {
+            display: inline-block;
+            background-color: black;
+            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>') center / contain no-repeat;
+            width: 24px; /* Icon size */
+            height: 24px; /* Icon size */
+        }
+        /* Additional styles */
+        .user-message, .bot-message {
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #e7f3ff;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #f1f0f0;
+        }
+        .message, .bot {
+            margin-bottom: 10px;
+        }
+        .message {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .bot {
+            display: flex;
+            justify-content: flex-start;
+        }
+        .day-heading {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .activity-item {
+            margin-left: 20px;
+        }
+
+
+        /* Adjust button sizes based on screen width */
+        @media (max-width: 576px) { /* Bootstrap's small breakpoint */
+            .new-destination-btn, #sendButton {
+                padding: 4px 8px; /* Smaller padding */
+                font-size: 0.8rem; /* Smaller font size */
+            }
+            .new-destination-btn .cloud-icon, .send-icon {
+                width: 16px; /* Smaller icon size */
+                height: 16px; /* Smaller icon size */
+            }
+        }
+
+        @media (min-width: 992px) { /* Bootstrap's large breakpoint */
+            .new-destination-btn, #sendButton {
+                padding: 6px 12px; /* Larger padding */
+                font-size: 1rem; /* Larger font size */
+            }
+            .new-destination-btn .cloud-icon, .send-icon {
+                width: 24px; /* Larger icon size */
+                height: 24px; /* Larger icon size */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-4">My Chatbot</h1>
+        <div id="chatbox">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-input-group">
+            <button class="new-destination-btn" onclick="refreshChat()">
+                <span class="cloud-icon"></span> <!-- Updated icon implementation -->
+                New Destination
+            </button>
+            <textarea id="userInput" class="form-control" placeholder="Type a message..."></textarea>
+            <button id="sendButton" type="button">
+                <span class="send-icon"></span>
+            </button>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        const sendMessage = () => {
+            var userInput = document.getElementById('userInput').value;
+            if (userInput.trim() !== '') {
+                // Display the user message in the chatbox
+                var chatbox = document.getElementById('chatbox');
+                var messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+
+                var newUserMessage = document.createElement('span');
+                newUserMessage.textContent = userInput;
+                newUserMessage.classList.add('user-message');
+
+                messageDiv.appendChild(newUserMessage);
+                chatbox.appendChild(messageDiv);
+
+                // Clear the input box and ensure the chatbox scrolls to the bottom
+                document.getElementById('userInput').value = '';
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                // Send the user input to the Flask app
+                fetch('http://127.0.0.1:5000/process_input', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({userInput: userInput}),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Replace "Day" with line breaks before "Day" to separate days visually
+                    let formattedResponse = data.response.replace(/Day/g, '<br><br>Day');
+
+                    // Display the bot response in the chatbox with formatting
+                    var botResponse = document.createElement('div');
+                    botResponse.classList.add('bot');
+
+                    var newBotMessage = document.createElement('span');
+                    newBotMessage.innerHTML = formattedResponse; // Insert formatted response
+                    newBotMessage.classList.add('bot-message');
+
+                    botResponse.appendChild(newBotMessage);
+                    chatbox.appendChild(botResponse);
+
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                })
+            }
+        };
+
+        // Event listener for the send button
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+
+        // Event listener to handle Enter key press (without Shift) in the text area
+        document.getElementById('userInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent the default action to stop from inserting a newline
+                sendMessage();
+            }
+        });
+
+        function refreshChat() {
+            document.getElementById('chatbox').innerHTML = '';
+            // Implement any additional logic needed for refreshing the chat.
+        }
+    </script>
+</body>
+</html>
