@@ -103,11 +103,23 @@
         .day-heading {
             font-weight: bold;
             margin-top: 20px;
+            margin-bottom: 10px;
+            color: #333;
         }
 
         .activity-item {
             margin-left: 20px;
+            margin-bottom: 5px;
         }
+
+        .meal-option, .hotel-recommendation {
+            margin-left: 20px;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
+/* You might already have some of these styles; adjust them as needed */
+
 
 
         /* Adjust button sizes based on screen width */
@@ -136,7 +148,7 @@
 </head>
 <body>
     <div class="container py-5">
-        <h1 class="text-center mb-4">My Chatbot</h1>
+        <h1 class="text-center mb-4">Travel Chatbot</h1>
         <div id="chatbox">
             <!-- Chat messages will appear here -->
         </div>
@@ -183,15 +195,19 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    // Replace "Day" with line breaks before "Day" to separate days visually
-                    let formattedResponse = data.response.replace(/Day/g, '<br><br>Day');
+                    // Split the response into sentences for detailed formatting.
+                    let sentences = data.response.split('. ');
+                    let formattedResponse = sentences.map(sentence => `<div class="activity-item">${sentence.trim()}.</div>`).join('');
+                    
+                    // Remove the trailing </div>. from the last sentence if it ends with it (due to split adding an extra dot).
+                    formattedResponse = formattedResponse.replace(/<\/div>\.$/, '</div>');
 
-                    // Display the bot response in the chatbox with formatting
+                    // Display the bot response in the chatbox with new formatting
                     var botResponse = document.createElement('div');
                     botResponse.classList.add('bot');
 
                     var newBotMessage = document.createElement('span');
-                    newBotMessage.innerHTML = formattedResponse; // Insert formatted response
+                    newBotMessage.innerHTML = formattedResponse; // Insert the formatted response
                     newBotMessage.classList.add('bot-message');
 
                     botResponse.appendChild(newBotMessage);
