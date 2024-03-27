@@ -147,6 +147,40 @@
     </style>
 </head>
 <body>
+    <!-- Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">Important Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Here are some important things to remember and a disclaimer for using this chatbot. Please read them carefully before proceeding.
+                    <hr>
+                    <h6>Capabilities of the Chatbot:</h6>
+                    <ul>
+                        <li>The chatbot can assist you in planning travel by suggesting destinations, activities, dining options, and accommodations based on your preferences.</li>
+                        <li>It is capable of understanding food and activity preferences, as well as hobbies to offer personalized recommendations.</li>
+                        <li>The chatbot can provide general information and answer queries related to travel planning within the UK.</li>
+                    </ul>
+                    <hr>
+                    <h6>Disclaimers:</h6>
+                    <ul>
+                        <li>The chatbot's suggestions are based on available data and might not always fully match your preferences or expectations.</li>
+                        <li>Always verify the information provided by the chatbot with official sources or directly with the services mentioned.</li>
+                        <li>We are not responsible for any inaccuracies in the information provided or for any decisions made based on the chatbot's recommendations.</li>
+                        <li>The chatbot does not store personal information but remember to not share sensitive personal information during your interactions.</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+                </div>            
+            </div>
+        </div>
+    </div>
+  
     <div class="container py-5">
         <h1 class="text-center mb-4">Travel Chatbot</h1>
         <div id="chatbox">
@@ -233,6 +267,15 @@
             document.getElementById('chatbox').innerHTML = '';
             // Implement any additional logic needed for refreshing the chat.
         }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            var myModal = new bootstrap.Modal(document.getElementById('infoModal'), {
+                keyboard: false,
+                backdrop: 'static' // This ensures the user must interact with the modal
+            });
+            myModal.show();
+        });
+
     </script>
 </body>
 </html>

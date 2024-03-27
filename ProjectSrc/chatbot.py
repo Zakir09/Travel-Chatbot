@@ -23,6 +23,8 @@ client = OpenAI(
 
 nlp = spacy.load("en_core_web_lg")
 
+geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
+
 
 class TravelPlanState:
     def __init__(self):
@@ -75,26 +77,37 @@ def get_lemmas(word):
 
 def get_extended_synonyms(word):
     manual_synonyms = {
-        "outdoor": {"outdoors", "exploring", "nature", "hiking"},
-        "watersport": {"watersports", "water sport", "water sports"},
-        "winter": {"cold", "snow", "ice"},
-        "cycling": {"biking", "bike", "bicycle"},
-        "fitness": {"exercise", "workout", "health", "gym"},
-        "photo": {"photography", "photographing", "photos"},
-        "nature": {"natural", "outdoors", "environment", "wildlife"},
-        "culture": {"cultural", "historical", "heritage", "arts"},
-        "music": {"musical", "concerts", "singing", "live music"},
+        "hiking": {"hike", "trails", "trekking", "walking", "exploring"},
+        "art": {"art", "painting", "sculpture", "galleries", "creativity"},
+        "literature": {"books", "reading", "literature", "novels", "writing"},
+        "technology": {"tech", "gadgets", "innovation", "science", "electronics"},
+        "gardening": {"plants", "gardening", "horticulture", "flowers", "landscaping"},
+        "astronomy": {"stars", "planets", "astronomy", "space", "universe"},
+        "animal": {"animal", "pet", "wildlife", "zoo", "creatures"},
+        "water sports": {"surfing", "diving", "swimming", "watersports", "aquatic"},
+        "extreme sports": {"extreme", "adrenaline", "adventure sports", "thrill seeking", "action sports"},
+        "martial arts": {"martial arts", "fighting", "self-defense", "combat", "dojo"},
+        "dance": {"dance", "dancing", "ballet", "salsa", "rhythm"},
+        "food tasting": {"foodie", "tasting", "cuisine", "gastronomy", "dining"},
+        "history": {"history", "past", "historical", "ancient", "heritage"},
+        "architecture": {"buildings", "design", "architecture", "construction", "structures"},
+        "fashion": {"fashion", "style", "clothing", "apparel", "trends"},
+        "wellness": {"wellness", "health", "spa", "relaxation", "self-care"},
+        "adventure": {"adventure", "explore", "discovery", "excursion", "journey"},
+        "socializing": {"social", "community", "friends", "networking", "gatherings"},
+        "mindfulness": {"mindfulness", "meditation", "peace", "calm", "serenity"},
+        "eco friendly": {"eco", "sustainability", "environment", "green", "conservation"},
+        "music": {"music", "concerts", "instruments", "bands", "melody"},
+        "photography": {"photography", "photo", "cameras", "picture", "imagery"},
+        "traveling": {"travel", "exploration", "adventures", "journeys", "voyages"},
+        "fitness": {"fitness", "exercise", "workout", "gym", "physical"},
+        "cycling": {"cycling", "biking", "bicycling", "riding", "pedaling"},
+        "board games": {"board games", "tabletop games", "strategy games", "card games", "puzzles"},
         "game": {"gaming", "games", "video games", "arcades"},
-        "excite": {"adventurous", "explore", "exploration", "thrill"},
-        "leisure": {"relaxation", "relaxing", "chill", "leisurely", "relax"},
-        "creative": {"creativity", "create", "craft", "arts and crafts", "creating"},
-        "culinary": {"cooking", "cook", "foodie", "gourmet"},
-        "entertainment": {"amusement", "fun", "entertaining"},
-        "exploration": {"explore", "discovery", "adventure", "travel"},
-        "relaxation": {"relax", "peaceful", "rest", "chill"},
-        "party": {"nightlife", "clubbing", "partying"},
-        "water": {"aquatic", "sea", "ocean", "marine"},
-        # Add more as needed for each hobby key
+        "cooking": {"cooking", "culinary", "baking", "gastronomy", "chef"},
+        "film": {"films", "movies", "cinema", "screenings", "blockbusters"},
+        "theater": {"theater", "drama", "plays", "performances", "acting"},
+        "nature": {"nature", "outdoors", "wilderness", "scenery", "natural", "environment"}
     }
 
     synonyms = get_lemmas(word)  # Your existing lemma generation
@@ -105,6 +118,10 @@ def extract_information(user_input):
     doc = nlp(user_input)
     matcher = Matcher(nlp.vocab)
 
+    print("Recognized entities and their labels:")
+    for ent in doc.ents:
+        print(f"{ent.text} ({ent.label_})")
+
     # Extract location
     location = None
     for ent in doc.ents:
@@ -113,6 +130,11 @@ def extract_information(user_input):
             if location == "uk":
                 location = None
             break
+    
+    if location:
+        print(f"Extracted location: {location}")
+    else:
+        print("No suitable location found.")
 
      # Combine token texts to catch multi-word preferences
     text = [token.text.lower() for token in doc]
@@ -142,26 +164,39 @@ def extract_information(user_input):
     ]
 
     hobby_to_activity_map = {
-        "outdoor": ["hike", "camping", "glamping", "kayaking", "sailing", "fishing", "rock climbing", "mountain biking", "bird watching", "nature walk", "paddleboarding", "wild swimming", "treasure hunt"],
-        "watersport": ["kayaking", "canoeing", "sailing", "fishing", "paddleboarding", "wild swimming"],
-        "winter": ["skiing", "snowboarding", "ice skating"],
-        "cycling": ["cycling", "mountain biking", "biking"],
-        "fitness": ["yoga", "pilates", "fitness class", "running", "sports event"],
-        "photo": ["photography", "scenic view", "monument", "landmark", "architecture tour", "photography class"],
-        "nature": ["nature walk", "bird watching", "botanical garden", "reservoir", "garden visit"],
-        "culture": ["museum", "art gallery", "cultural center", "street art", "mural", "cultural workshop", "castle tour", "literary tour", "film tour"],
-        "music": ["concert", "dance class", "karaoke", "jazz club", "live music venue", "open mic night"],
-        "game": ["cinema", "arcade", "virtual reality", "trampoline park", "skate park", "escape room", "laser tag", "bowling", "mini golf", "go-karting", "board game café", "virtual escape room", "immersive experience", "VR arcade", "video game lounge"],
-        "excite": ["rock climbing", "aerial adventure", "zip lining", "paintball", "bumper cars", "escape game", "airsoft", "hovercraft experience", "zorbing", "adventure"],
-        "leisure": ["picnic spot", "sunset watch", "dawn patrol", "roller skating", "tea tasting", "coffee tasting", "beach", "park", "spa"],
-        "creative": ["pottery class", "painting class", "drawing class", "sculpture class", "photography class", "animation workshop", "craft workshop", "DIY pottery studio", "soap making workshop", "perfume making workshop"],
-        "culinary": ["cooking class", "winery", "brewery", "tea tasting", "coffee tasting", "cheese tasting", "chocolate workshop", "wine tasting", "beer tasting", "distillery tour", "cider tasting", "sushi making class", "chocolate making class", "bread baking workshop", "cocktail making class"],
-        "entertainment": ["theme park", "amusement park", "casino", "dinner theater", "comedy club", "magic show", "puppet show", "murder mystery dinner", "planetarium"],
-        "exploration": ["historical site", "zoo", "aquarium", "castle tour", "ghost tour", "literary tour", "film tour", "farm visit", "market", "antique hunting", "treasure hunt", "sailing experience"],
-        "relaxation": ["spa", "beach", "park", "ice bar", "rooftop cinema", "drive-in movie", "silent disco"],
-        "party": ["bar", "nightclub", "karaoke", "jazz club", "comedy club", "live music venue", "open mic night", "silent disco"],
-        "water": ["aquarium", "beach", "lake", "river", "waterfall", "paddleboarding", "wild swimming"],
+        "hiking": ["trail walking", "mountain trekking", "nature trails", "forest hiking"],
+        "art": ["gallery visit", "art exhibition", "museum tour", "street art tour"],
+        "literature": ["library", "author meetup", "bookstore", "poetry cafe", "historical library", "literary museum"],
+        "technology": ["electronics store", "tech workshops", "tech exhibit", "science museums", "virtual reality", "tech exhibits"],
+        "gardening": ["botanical gardens", "community gardening", "floral workshops", "garden center", "flower shop"],
+        "astronomy": ["planetarium", "observatory", "astronomy museum", "telescope shop"],
+        "animal": ["zoo", "aquarium", "pet cafe", "wildlife rescue center", "bird sanctuary"],
+        "water sports": ["surf shop", "dive center", "kayaking location", "water park"],
+        "extreme sports": ["indoor skydiving center", "bungee jump site", "paragliding", "mountain bike trail", "rock climbing gym"],
+        "martial arts": ["martial arts gym", "karate classes", "judo workshops", "taekwondo", "Brazilian jiu-jitsu", "boxing gym", "aikido dojo"],
+        "dance": ["dance studio", "nightclub", "tango club", "salsa night", "ballroom dancing", "street dance workshops"],
+        "food tasting": ["food festivals", "wine tasting", "brewery tours", "culinary workshops"],
+        "history": ["history museum", "historical landmark", "cultural heritage center", "archaeological sites", "heritage tours"],
+        "architecture": ["architectural tour", "historical building visits", "modern architecture tours"],
+        "fashion": ["fashion shows", "fashion boutique", "vintage clothing store", "designer store", "style workshops"],
+        "wellness": ["day spa", "yoga studio", "meditation center", "health retreat", "hot spring", "wellness center"],
+        "adventure": ["adventure parks", "escape rooms", "theme park", "outdoor adventure course", "expedition tours"],
+        "socializing": ["food fairs", "outdoor concerts", "live music venue", "bars", "nightclubs", "conventions"],
+        "mindfulness": ["meditation sessions", "mindfulness retreats", "yoga classes", "well-being workshops"],
+        "eco friendly": ["nature reserve", "eco park", "organic farm", "sustainability center", "wildlife refuge", "conservation area"],
+        "music": ["concerts", "open mic night", "vinyl collecting", "music venue", "jazz club", "record store", "karaoke bar", "music equipment store"],
+        "photography": ["photography studio", "gallery", "photo tour", "camera store", "nature photography", "urban photography spot", "photography exhibitions"],
+        "traveling": ["road trips", "cultural exchanges", "cultural landmark", "national park", "historical tour", "cruise line", "city tour"],
+        "fitness": ["gym", "crossfit box", "pilates studio", "running track", "sports complex", "obstacle course"],
+        "cycling": ["bike shop", "cycling trail", "mountain biking park", "bicycle rental service", "BMX track"],
+        "game": ["cinema", "arcade", "trampoline park", "skate park", "escape room", "laser tag", "bowling", "mini golf", "go-karting", "board game cafe", "immersive experience", "virtual reality", "video game lounge"],
+        "board games": ["board game shop", "game cafe", "gaming lounge", "tabletop gaming club", "puzzle room", "strategy tournament", "RPG session", "card game competition"],
+        "cooking": ["cooking class", "food festival", "gourmet shop", "kitchen supply store", "culinary event space", "farmer's market", "food tasting event"],
+        "film": ["cinema", "outdoor cinema", "live theater", "musical performance", "comedy show", "opera house", "movie theater", "drive-in cinema", "film studio tour"],
+        "theater": ["theater venue", "performing arts center", "opera house", "improvisational theater", "puppet theater", "amphitheater"],
+        "nature":["lakefront", "river path", "waterfall trail", "nature preserve", "bird sanctuary", "botanical garden", "reservoir area"]
     }
+
 
 
     activity_keywords = [
@@ -181,7 +216,7 @@ def extract_information(user_input):
         "tea tasting", "coffee tasting", "cheese tasting", "chocolate workshop", "ghost tour",
         "literary tour", "film tour", "farm visit", "market", "antique hunting", "craft fair",
         "biking", "painting class", "drawing class", "sculpture class", "photography class",
-        "distillery tour", "cider tasting", "laser tag", "bowling", "mini golf", "go-karting", "bumper cars", "board game café",
+        "distillery tour", "cider tasting", "laser tag", "bowling", "mini golf", "go-karting", "bumper cars", "board game cafe",
         "paintball", "aquapark", "roller disco", "karaoke", "bouldering", "indoor skydiving",
         "theme restaurant", "magic show", "puppet show", "ice bar", "dinner theater",
         "comedy club", "jazz club", "planetarium", "murder mystery dinner", "virtual reality",
@@ -202,35 +237,30 @@ def extract_information(user_input):
         if any(hobby_syn in lemmatized_text for hobby_syn in hobby_synonyms):
             selected_activity = random.choice(activities)
             activity_preferences.add(selected_activity)
+            selected_activity = random.choice(activities)
+            activity_preferences.add(selected_activity)
             selected_hobby = hobby
             hobby_preferences.add(selected_hobby)
 
-    # Check for multi-word and single-word preferences in combined_text
     for preference in food_keywords + activity_keywords:
         if preference in combined_text:
-            if preference in food_keywords:
+            if preference in food_keywords and preference not in travel_plan_state.food_preferences:
                 food_preferences.add(preference)
-            else:
+            elif preference in activity_keywords and preference not in travel_plan_state.activity_preferences:
                 activity_preferences.add(preference)
 
+    # Convert from set to list before updating to maintain consistency with your TravelPlanState structure
     food_preferences = list(food_preferences)
     activity_preferences = list(activity_preferences)
     hobby_preferences = list(hobby_preferences)
+
+    # Update travel plan state only with new preferences
     if food_preferences:
         travel_plan_state.update_preferences(food_preferences=food_preferences)
     if activity_preferences:
         travel_plan_state.update_preferences(activity_preferences=activity_preferences)
     if hobby_preferences:
         travel_plan_state.update_preferences(hobby_preferences=hobby_preferences)
-
-    # Default random selection if no preferences are found
-    if not food_preferences and not travel_plan_state.food_preferences and location:
-        food_preferences.append(random.choice(food_keywords))
-        food_preferences.append(random.choice(food_keywords))
-        print (food_preferences)
-    if not activity_preferences and not travel_plan_state.activity_preferences and location:
-        activity_preferences.append(random.choice(activity_keywords))
-        print (activity_preferences)
 
    # Patterns to match "[number] day(s)" or "[number in text] day(s)"
     patterns = [
@@ -265,13 +295,10 @@ def extract_information(user_input):
 
 
 
-def get_yelp_data(query, location, limit=40, radius=10000):
-    # Make a request to the Yelp API
+def get_yelp_data(query, location, min_rating = 4.2, limit=40, radius=10000):
     headers = {
         "Authorization": f"Bearer {yelp_api_key}"
     }
-
-    # Update the parameters to include the specific location and the increased limit
     params = {
         "term": query,
         "location": location,
@@ -285,95 +312,73 @@ def get_yelp_data(query, location, limit=40, radius=10000):
     if response.status_code == 200:
         data = response.json()
         businesses = data.get("businesses", [])
-        return businesses
+        
+        # Filter businesses by minimum rating
+        filtered_businesses = [business for business in businesses if business.get("rating", 0) >= min_rating]
+        
+        return filtered_businesses
     else:
         return None
-    
+
 
 def get_activity_options(activity_preferences, location, num_days):
-    # Function to remove duplicates based on Yelp business ID
     def remove_duplicates(places):
         unique_places = {}
         for place in places:
             if place['id'] not in unique_places:
                 unique_places[place['id']] = place
+        print(f"Removed duplicates, {len(unique_places)} unique places found.")  # Debug
         return list(unique_places.values())
     
-    def ensure_minimum_activities(activity_preferences, min_count=4):
-        general_activities = [
-            "hiking", "shopping", "theme park", "concert", "cinema", 
-            "historical site", "art gallery", "spa", "golf", 
-            "amusement park", "aquarium", "botanical garden", 
-            "cruise", "festival", "rock climbing", "kayaking", "canoeing", "sailing", 
-            "ice skating", "horse riding", "camping", 
-            "cycling", "mountain biking", "photography", 
-            "scenic view", "landmark", "street art", "mural", "workshop", 
-            "escape room", "virtual reality", "arcade", "trampoline", "skateboarding", 
-            "roller skating", "paddleboarding", "wild swimming", "garden visit", 
-            "castle tour", "ghost tour", "market",
-            "laser tag", "bowling", "mini golf", "go-karting", "bumper cars", "board game café",
-            "paintball", "aquapark", "roller disco", "karaoke", "bouldering", "indoor skydiving",
-            "theme restaurant", "magic show", "puppet show", "ice bar", "dinner theater",
-            "comedy club", "jazz club", "planetarium", "murder mystery",
-            "axe throwing", "rooftop cinema", "drive-in movie", "immersive experience", "vr",
-            "bubble soccer", "indoor surfing", "hovercraft experience", "zorbing", "treasure hunt",
-            "escape game", "airsoft", "live music venue", "open mic night", "silent disco",
-            "nerf battle", "drone racing", "video game lounge"
-        ]
-
-
-        while len(activity_preferences) < min_count * (num_days / 2):
-            # Add a random activity that is not already in the preferences
-            additional_activity = random.choice([activity for activity in general_activities if activity not in activity_preferences])
-            activity_preferences.append(additional_activity)
-        return activity_preferences
-
-
-    def spread_activities(activities, num_days):
-        activity_types = list(activities.keys())  # List of different activity types
-        current_activity_index = 0  # Track the current index of activity types
-        activities_per_day = 3  # Desired number of activities per day
-        activity_selection.clear()  # Clearing existing selections if you're reusing this list
-
-        total_activities_needed = num_days * activities_per_day
-        selected_activities_count = 0
-
-        while selected_activities_count < total_activities_needed:
-            if current_activity_index >= len(activity_types):  # If we've gone through all types, start over
-                current_activity_index = 0
-
-            current_type = activity_types[current_activity_index]
-            if activities[current_type]:  # If there are places left in this activity type
-                selected_place = random.choice(activities[current_type])  # Randomly select a place
-                print(f"Selected activity place: {selected_place['name']} ({current_type})")
-                
-                activity_selection.append(selected_place)  # Add to the global activity_selection list
-                selected_activities_count += 1
-
-            current_activity_index += 1
-
+    general_search_term = "activities"
+    print("Fetching general activities...")  # Debug
+    general_activities = get_yelp_data(general_search_term, location, limit=40)
     
-    # Ensure a minimum number of activities
-    activity_preferences_temp = list(activity_preferences)
-    activity_preferences_temp = ensure_minimum_activities(activity_preferences_temp)
-    print(activity_preferences_temp)
+    specific_activities = []
 
-    # Group activities by type
-    activity_groups = {preference: [] for preference in activity_preferences_temp}
+    # Remove duplicates and ensure the list only contains unique activities
+    general_activities = remove_duplicates(general_activities)
 
-    for preference in activity_preferences_temp:
-        query = f"{preference}"
-        print(f"Fetching data for: {query}, Location: {location}")
-        places = get_yelp_data(query, location)  # Adjust limit as needed
-        if places:
-            print(f"Found {len(places)} places for query: {query}")
-            activity_groups[preference] = remove_duplicates(places)
-        else:
-            print(f"No places found for query: {query}")
+    for preference in activity_preferences:
+        if preference.lower() != general_search_term:
+            print(f"Fetching activities for preference: {preference}")  # Debug
+            specific_results = get_yelp_data(preference, location, limit=40)
+            if specific_results:
+                print(f"Found {len(specific_results)} activities for preference: {preference}")  # Debug
+            specific_activities.extend(specific_results or [])
+    
+    specific_activities = remove_duplicates(specific_activities)
 
+    # Debug statements for visibility
+    print(f"General Activities Found: {len(general_activities)}")
+    print(f"Specific Activities Found: {len(specific_activities)}")
+    
+    # Shuffle to randomize the order and improve diversity
+    random.shuffle(general_activities)
+    random.shuffle(specific_activities)
 
     activity_selection = []
-    spread_activities(activity_groups, num_days)
+    activities_per_day = 3  # Desired number of activities per day
+
+    for day in range(num_days):
+        today_activities = []
+        # Alternate between specific and general activities to ensure diversity
+        for i in range(activities_per_day):
+            if i % 2 == 0 and specific_activities:
+                today_activities.append(specific_activities.pop(0))
+                print(f"Added specific activity for day {day + 1}")  # Debug
+            elif general_activities:
+                today_activities.append(general_activities.pop(0))
+                print(f"Added general activity for day {day + 1}")  # Debug
+
+        # If not enough activities were added (e.g., due to running out of specific activities),
+        # fill in the remaining slots with general activities
+        while len(today_activities) < activities_per_day and general_activities:
+            today_activities.append(general_activities.pop(0))
+            print(f"Filled in with general activity for day {day + 1} due to shortage.")  # Debug
+
+        print(f"Activities for day {day + 1}: {[activity['name'] for activity in today_activities]}")  # Debug
+        activity_selection.extend(today_activities)
 
     return activity_selection
 
@@ -392,22 +397,33 @@ def get_meal_options(food_preferences, location, num_days):
     for meal_type in ["breakfast", "lunch", "dinner"]:
         all_places = []  # Collect all places for all preferences for each meal
 
-        # Loop through each food preference and make separate requests,
-        # explicitly appending "restaurant" to each preference to form the query
-        for preference in food_preferences:
-            # Append "restaurant" to make the preference explicit for Yelp API
-            query = f"{preference} {meal_type}"
-            print(f"{preference} restaurant {meal_type} day {num_days}")
-            print(f"Fetching data for: {query}, Location: {location}")
+        # Check if food_preferences is empty
+        if not food_preferences:
+            # If no food_preferences specified, form a general query
+            query = f"{meal_type}"
+            print(f"Restaurant {meal_type} day {num_days}")
             places = get_yelp_data(query, location)  # Adjust limit as needed
             if places:
                 print(f"Found {len(places)} places for query: {query}")
                 all_places.extend(places)
             else:
                 print(f"No places found for query: {query}")
-            
-            # Remove duplicates and randomly select one unique place for the meal
-            unique_places = remove_duplicates(all_places)
+        else:
+            # Loop through each food preference and make separate requests,
+            # explicitly appending "restaurant" to each preference to form the query
+            for preference in food_preferences:
+                query = f"{preference} {meal_type}"
+                print(f"{preference} restaurant {meal_type} day {num_days}")
+                print(f"Fetching data for: {query}, Location: {location}")
+                places = get_yelp_data(query, location)  # Adjust limit as needed
+                if places:
+                    print(f"Found {len(places)} places for query: {query}")
+                    all_places.extend(places)
+                else:
+                    print(f"No places found for query: {query}")
+
+        # Remove duplicates and randomly select one unique place for the meal
+        unique_places = remove_duplicates(all_places)
         for day in range(1, num_days + 1):
             if unique_places:
                 selected_place = random.choice(unique_places)  # Randomly select one unique place
@@ -415,6 +431,7 @@ def get_meal_options(food_preferences, location, num_days):
                 meal_options[meal_type].append(selected_place)
     
     return meal_options
+
 
 
 def get_coordinates(location):
@@ -493,23 +510,28 @@ def calculate_proximity_score(hotel_location, activities, food_places):
     return 1.0  # Adjust based on your criteria
 
 def is_location_in_uk(location):
-    geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
-    result = geocoder.geocode(location)
-    for res in result:
-        if res['components']['country'] == 'United Kingdom':
-            return True
+    try:
+        result = geocoder.geocode(location, countrycode='gb')  # Limit search to Great Britain
+        for res in result:
+            if 'components' in res and 'country' in res['components']:
+                if res['components']['country'] == 'United Kingdom':
+                    return True
+    except Exception as e:
+        print(f"Geocoding error: {str(e)}")  # Consider more sophisticated logging or error handling
     return False
+
 
 
 
 def chat_gpt(messages):
     user_input = messages.lower()
     location, num_days, food_preferences, activity_preferences, hobby_preferences = extract_information(user_input)
-
+    if not location and travel_plan_state.location:
+        location = travel_plan_state.location
     # Check if the input is a general conversation
-    if (not location or location == travel_plan_state.location) and (not food_preferences or not activity_preferences or not hobby_preferences):
+    if (not location or location == travel_plan_state.location):
         # Handle general conversation using GPT-4
-        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on cities/places in the UK."}
+        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on travel destinations in the UK."}
         user_message = {"role": "user", "content": user_input}
         try:
             response = client.chat.completions.create(
@@ -521,23 +543,12 @@ def chat_gpt(messages):
             return chat_response
         except Exception as e:
             return f"Sorry, I encountered an issue: {str(e)}"
-    if location:
-        travel_plan_state.update_preferences(location=location)
-    if not location and travel_plan_state.location:
-        location = travel_plan_state.location
-    num_days = travel_plan_state.num_days or 1
-    if food_preferences and travel_plan_state.food_preferences:
-        food_preferences = travel_plan_state.food_preferences
-    if activity_preferences and travel_plan_state.activity_preferences:
-        activity_preferences = travel_plan_state.activity_preferences
-    if hobby_preferences and travel_plan_state.hobby_preferences:
-        hobby_preferences = travel_plan_state.hobby_preferences
     
     # Proceed with location-specific logic for travel-related inquiries
     if location:
         if not is_location_in_uk(location):
             system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
-            user_message = {"role": "user", "content": "Tell the user that they need to include a destination within the UK and provide popular places."}
+            user_message = {"role": "user", "content": "Tell the user that they need to include a destination within the UK and provide popular cities to visit."}
             try:
                 response = client.chat.completions.create(
                     model="gpt-4",
@@ -549,6 +560,7 @@ def chat_gpt(messages):
             except Exception as e:
                 return f"Sorry, I encountered an issue: {str(e)}"
         else:
+            travel_plan_state.update_preferences(location=location)
             location += ", UK"
     else:
         system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
@@ -563,6 +575,13 @@ def chat_gpt(messages):
             return chat_response
         except Exception as e:
             return f"Sorry, I encountered an issue: {str(e)}"
+    num_days = travel_plan_state.num_days or 1
+    if food_preferences and travel_plan_state.food_preferences:
+        food_preferences = travel_plan_state.food_preferences
+    if activity_preferences and travel_plan_state.activity_preferences:
+        activity_preferences = travel_plan_state.activity_preferences
+    if hobby_preferences and travel_plan_state.hobby_preferences:
+        hobby_preferences = travel_plan_state.hobby_preferences
 
     print(f"{location}\n{food_preferences}\n{activity_preferences}\n{hobby_preferences}\n{num_days}")
 
@@ -578,6 +597,7 @@ def chat_gpt(messages):
     # The rest of your function...
 
     hotels = get_hotel_data(location, all_activities, meal_options["breakfast"] + meal_options["lunch"] + meal_options["dinner"])
+    print(hotels)
     travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
     
 
@@ -599,7 +619,7 @@ def chat_gpt(messages):
     prompt_summary += "\nHere is also the original message(s) from the user to take into account:\n"
     prompt_summary += f"\n{user_input}"
     prompt_summary += "\nPlease organize this information into a coherent, long, descriptive, and detailed travel plan.\n"
-    prompt_summary += "\nMake sure it is formatted as if you were consulting someone."
+
 
     # Call to GPT-4
     system_message = {"role": "system", "content": "You are a helpful travel agent designed to provide travel advice and recommendations in a destination in the UK."}
