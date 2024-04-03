@@ -118,6 +118,23 @@
             font-style: italic;
         }
 
+        .prompt-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            width: 200px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .prompt-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+
 /* You might already have some of these styles; adjust them as needed */
 
 
@@ -183,8 +200,21 @@
   
     <div class="container py-5">
         <h1 class="text-center mb-4">Travel Chatbot</h1>
+               
         <div id="chatbox">
-            <!-- Chat messages will appear here -->
+            <div id="examplePrompts" class="mb-3">
+                <h2 class="text-center mb-4">Get Started with Examples</h2>
+                <div class="d-flex justify-content-center flex-wrap">
+                    <!-- Example Prompt 1 -->
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Location: Paris, Best Food: Croissants, Best Activities: Visiting the Louvre')">
+                        <p><strong>Location:</strong> Paris</p>
+                        <p><strong>Best Food:</strong> Croissants</p>
+                        <p><strong>Best Activities:</strong> Visiting the Louvre</p>
+                    </div>
+                    <!-- Add more boxes for each set of example prompts as needed -->
+                </div>
+            </div> 
+        <!-- Chat messages will appear here -->
         </div>
         <div class="chat-input-group">
             <button class="new-destination-btn" onclick="refreshChat()">
@@ -202,6 +232,7 @@
     <script>
         const sendMessage = () => {
             var userInput = document.getElementById('userInput').value;
+            document.getElementById('examplePrompts').style.display = 'none';
             if (userInput.trim() !== '') {
                 // Display the user message in the chatbox
                 var chatbox = document.getElementById('chatbox');
@@ -264,9 +295,26 @@
         });
 
         function refreshChat() {
-            document.getElementById('chatbox').innerHTML = '';
-            // Implement any additional logic needed for refreshing the chat.
+            // Make a GET request to the reset endpoint to clear the backend state
+            fetch('http://127.0.0.1:5000/reset')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message); // Log the success message
+                window.location.reload();
+            })
+            .catch(error => console.error('Error resetting state:', error));
         }
+        
+        function selectPrompt(promptText) {
+            // Send the selected prompt to the chatbot
+            document.getElementById('userInput').value = promptText;
+            sendMessage(); // Call the existing sendMessage() function
+
+            // Hide the example prompts
+            document.getElementById('examplePrompts').style.display = 'none';
+        }
+
+
 
         document.addEventListener('DOMContentLoaded', (event) => {
             var myModal = new bootstrap.Modal(document.getElementById('infoModal'), {

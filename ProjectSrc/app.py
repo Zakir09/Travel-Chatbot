@@ -11,6 +11,11 @@ def process_input():
     response = chatbot.chat_gpt(user_input)
     return jsonify({"response": response})
 
+@app.route('/reset', methods=['GET'])
+def reset():
+    chatbot.travel_plan_state.reset()  # Assuming `reset()` is your method to clear the class data
+    return jsonify({"status": "success", "message": "State reset successfully."})
+
 if __name__ == "__main__":
     app.run(debug=True)
 
