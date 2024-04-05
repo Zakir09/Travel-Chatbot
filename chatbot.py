@@ -21,7 +21,7 @@ client = OpenAI(
     api_key=open_ai_key,
 )
 
-nlp = spacy.load("en_core_web_lg")
+nlp = spacy.load("en_core_web_md")
 
 geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
 
