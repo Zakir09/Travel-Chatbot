@@ -251,7 +251,7 @@
                 chatbox.scrollTop = chatbox.scrollHeight;
 
                 // Send the user input to the Flask app
-                fetch('http://127.0.0.1:5000/process_input', {
+                fetch('/process_input', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -296,7 +296,7 @@
 
         function refreshChat() {
             // Make a GET request to the reset endpoint to clear the backend state
-            fetch('http://127.0.0.1:5000/reset')
+            fetch('/reset')
             .then(response => response.json())
             .then(data => {
                 console.log(data.message); // Log the success message
