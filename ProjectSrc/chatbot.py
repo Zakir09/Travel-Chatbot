@@ -21,7 +21,17 @@ client = OpenAI(
     api_key=open_ai_key,
 )
 
-nlp = spacy.load("en_core_web_lg")
+def load_spacy_model():
+    model_name = "en_core_web_lg"
+    try:
+        return spacy.load(model_name)
+    except IOError:
+        print(f"{model_name} not found, downloading...")
+        from spacy.cli import download
+        download(model_name)
+        return spacy.load(model_name)
+
+nlp = load_spacy_model()
 
 geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
 
