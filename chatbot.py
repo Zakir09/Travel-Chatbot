@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 import spacy
-import spacy.cli
 from spacy.matcher import Matcher
 from nltk.corpus import wordnet as wn
 import requests
@@ -22,7 +21,6 @@ client = OpenAI(
     api_key=open_ai_key,
 )
 
-spacy.cli.download("en_core_web_lg")
 nlp = spacy.load("en_core_web_lg")
 
 geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
