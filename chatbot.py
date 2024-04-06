@@ -118,23 +118,24 @@ def extract_information(user_input):
     doc = nlp(user_input)
     matcher = Matcher(nlp.vocab)
 
+    potential_locations = []
+
     print("Recognized entities and their labels:")
     for ent in doc.ents:
         print(f"{ent.text} ({ent.label_})")
+        # Collect potential locations
+        if ent.label_ in ["GPE", "LOC", "ORG", "PERSON"]:
+            potential_locations.append(ent.text)
 
-    # Extract location
     location = None
-    for ent in doc.ents:
-        if ent.label_ == "GPE":  # GPE stands for geopolitical entity
-            location = ent.text
-            if location == "uk":
-                location = None
+    for loc in potential_locations:
+        if is_location_in_uk(loc):
+            location = loc
+            print(f"Extracted location using geocoding: {location}")
             break
-    
-    if location:
-        print(f"Extracted location: {location}")
-    else:
-        print("No suitable location found.")
+
+    if not location:
+        print("No suitable location found in initial NER or geocoding.")
 
      # Combine token texts to catch multi-word preferences
     text = [token.text.lower() for token in doc]
@@ -597,7 +598,6 @@ def chat_gpt(messages):
     # The rest of your function...
 
     hotels = get_hotel_data(location, all_activities, meal_options["breakfast"] + meal_options["lunch"] + meal_options["dinner"])
-    print(hotels)
     travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
     
 
