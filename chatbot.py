@@ -2,6 +2,9 @@ from dotenv import load_dotenv
 import os
 import spacy
 from spacy.matcher import Matcher
+import nltk
+nltk.download('wordnet')
+
 from nltk.corpus import wordnet as wn
 import requests
 import opencage.geocoder
