@@ -7,6 +7,7 @@ import requests
 import opencage.geocoder
 from openai import OpenAI
 import random
+import gc
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,7 +22,6 @@ client = OpenAI(
     api_key=open_ai_key,
 )
 
-nlp = spacy.load("en_core_web_md")
 
 geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
 
@@ -114,7 +114,9 @@ def get_extended_synonyms(word):
     manual_related = manual_synonyms.get(word, set())
     return synonyms.union(manual_related)
 
+
 def extract_information(user_input):
+    nlp = spacy.load("en_core_web_md")
     doc = nlp(user_input)
     matcher = Matcher(nlp.vocab)
 
@@ -292,8 +294,10 @@ def extract_information(user_input):
         break  # Assuming the first match is the desired one; remove or modify if multiple day specifications can occur.
     travel_plan_state.update_preferences(num_days=num_days)
 
-    return location, num_days, food_preferences, activity_preferences, hobby_preferences
+    del nlp
+    gc.collect()
 
+    return location, num_days, food_preferences, activity_preferences, hobby_preferences
 
 
 def get_yelp_data(query, location, min_rating = 4.2, limit=40, radius=10000):
