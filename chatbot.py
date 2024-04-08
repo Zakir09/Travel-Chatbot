@@ -244,8 +244,6 @@ def extract_information(user_input):
         if any(hobby_syn in lemmatized_text for hobby_syn in hobby_synonyms):
             selected_activity = random.choice(activities)
             activity_preferences.add(selected_activity)
-            selected_activity = random.choice(activities)
-            activity_preferences.add(selected_activity)
             selected_hobby = hobby
             hobby_preferences.add(selected_hobby)
 
@@ -609,39 +607,47 @@ def chat_gpt(messages):
     travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
     
 
-    # Construct a detailed prompt for GPT
-    prompt_summary = f"Create a detailed travel itinerary for a {num_days}-day trip to {location}. Include dining at cuisines and restaurants, activities the user could do, and recommended hotels. Consider the following details:\n"
-    prompt_summary = f"\nHobbies/Interests:\n"
-    prompt_summary = f"\n{hobby_preferences}\n"
-    prompt_summary += "\nMeal options:\n"
-    for meal_type, meals in meal_options.items():
-        prompt_summary += f"{meal_type.capitalize()}: " + ", ".join([f"{meal['name']}" for meal in meals]) + "\n"
+    # Start with a clear and concise introduction for the itinerary
+    prompt_summary = f"Create a concise travel itinerary for {num_days}-day trip to {location}, including dining, activities, and hotel recommendations.\n"
 
-    prompt_summary += "\nActivities:\n"
-    activities_per_day = len(all_activities) // num_days
-    for day in range(num_days):
-        activities_for_day = all_activities[day * activities_per_day: (day + 1) * activities_per_day]
-        prompt_summary += f"Day {day + 1}: " + ", ".join([activity['name'] for activity in activities_for_day]) + "\n"
+    # Add hobbies and interests in a summarized form
+    if hobby_preferences:
+        prompt_summary += f"Hobbies/Interests: {', '.join(hobby_preferences)}\n"
 
-    prompt_summary += "\nHotel recommendations:\n" + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"
-    prompt_summary += "\nHere is also the original message(s) from the user to take into account:\n"
-    prompt_summary += f"\n{user_input}"
-    prompt_summary += "\nPlease organize this information into a coherent, long, descriptive, and detailed travel plan.\n"
+    # Summarize meal options
+    if meal_options:
+        prompt_summary += "Meal options:\n"
+        for meal_type, meals in meal_options.items():
+            prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join([f"{meal['name']}" for meal in meals[:2]]) + "\n"  # Limit to 2 examples per meal type
 
+    # Summarize activities
+    if all_activities:
+        prompt_summary += "Activities: " + ", ".join([activity['name'] for activity in all_activities[:3]]) + "\n"  # Limit to 3 examples
 
-    # Call to GPT-4
-    system_message = {"role": "system", "content": "You are a helpful travel agent designed to provide travel advice and recommendations in a destination in the UK."}
-    user_message = {"role": "user", "content": prompt_summary}
+    # Add hotel recommendations
+    if hotels:
+        prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:2]]) + "\n"  # Limit to 2 examples
+
+    # Include the original user input for context
+    prompt_summary += "User's request: " + user_input + "\n"
+
+    # Sign off with a directive
+    prompt_summary += "Organize this into a detailed, yet concise travel plan."
 
     try:
         response = client.chat.completions.create(
             model="gpt-4",
-            messages=[system_message, user_message],
-            temperature=0.7  # Adjust for creativity as needed
+            messages=[
+                {"role": "system", "content": "You are a helpful travel agent designed to provide concise travel advice and recommendations."},
+                {"role": "user", "content": prompt_summary}
+            ],
+            temperature=0.5,  # Slightly more deterministic
+            max_tokens=300,  # Limit the response length
         )
         chat_response = response.choices[0].message.content
     except Exception as e:
         chat_response = f"Sorry, I encountered an issue: {str(e)}"
+
     
     return chat_response
 
