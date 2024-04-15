@@ -4,13 +4,12 @@ import spacy
 from spacy.matcher import Matcher
 import nltk
 nltk.download('wordnet')
-
 from nltk.corpus import wordnet as wn
 import requests
 import opencage.geocoder
 from openai import OpenAI
 import random
-import gc
+# import gc
 
 
 # Load environment variables from .env file
@@ -26,7 +25,7 @@ client = OpenAI(
     api_key=open_ai_key,
 )
 
-
+nlp = spacy.load("updated_ner_model")
 geocoder = opencage.geocoder.OpenCageGeocode(opencage_api_key)
 
 
@@ -81,7 +80,7 @@ def get_lemmas(word):
 
 def get_extended_synonyms(word):
     manual_synonyms = {
-        "hiking": {"hike", "trails", "trekking", "walking", "exploring"},
+        "hiking": {"hike", "trails", "trekking", "walking", "exploring", "explore"},
         "art": {"art", "painting", "sculpture", "galleries", "creativity"},
         "literature": {"books", "reading", "literature", "novels", "writing"},
         "technology": {"tech", "gadgets", "innovation", "science", "electronics"},
@@ -92,7 +91,6 @@ def get_extended_synonyms(word):
         "extreme sports": {"extreme", "adrenaline", "adventure sports", "thrill seeking", "action sports"},
         "martial arts": {"martial arts", "fighting", "self-defense", "combat", "dojo"},
         "dance": {"dance", "dancing", "ballet", "salsa", "rhythm"},
-        "food tasting": {"foodie", "tasting", "cuisine", "gastronomy", "dining"},
         "history": {"history", "past", "historical", "ancient", "heritage"},
         "architecture": {"buildings", "design", "architecture", "construction", "structures"},
         "fashion": {"fashion", "style", "clothing", "apparel", "trends"},
@@ -120,28 +118,27 @@ def get_extended_synonyms(word):
 
 
 def extract_information(user_input):
-    nlp = spacy.load("en_core_web_md")
+    print("Processing input:", user_input)  # To see exactly what is being processed
     doc = nlp(user_input)
+    
     matcher = Matcher(nlp.vocab)
-
-    potential_locations = []
 
     print("Recognized entities and their labels:")
     for ent in doc.ents:
         print(f"{ent.text} ({ent.label_})")
-        # Collect potential locations
-        if ent.label_ in ["GPE", "LOC", "ORG", "PERSON"]:
-            potential_locations.append(ent.text)
-
+    # Extract location
     location = None
-    for loc in potential_locations:
-        if is_location_in_uk(loc):
-            location = loc
-            print(f"Extracted location using geocoding: {location}")
+    for ent in doc.ents:
+        if ent.label_ == "GPE":  # GPE stands for geopolitical entity
+            location = ent.text
+            if location == "uk":
+                location = None
             break
-
-    if not location:
-        print("No suitable location found in initial NER or geocoding.")
+    
+    if location:
+        print(f"Extracted location: {location}")
+    else:
+        print("No suitable location found.")
 
      # Combine token texts to catch multi-word preferences
     text = [token.text.lower() for token in doc]
@@ -182,7 +179,6 @@ def extract_information(user_input):
         "extreme sports": ["indoor skydiving center", "bungee jump site", "paragliding", "mountain bike trail", "rock climbing gym"],
         "martial arts": ["martial arts gym", "karate classes", "judo workshops", "taekwondo", "Brazilian jiu-jitsu", "boxing gym", "aikido dojo"],
         "dance": ["dance studio", "nightclub", "tango club", "salsa night", "ballroom dancing", "street dance workshops"],
-        "food tasting": ["food festivals", "wine tasting", "brewery tours", "culinary workshops"],
         "history": ["history museum", "historical landmark", "cultural heritage center", "archaeological sites", "heritage tours"],
         "architecture": ["architectural tour", "historical building visits", "modern architecture tours"],
         "fashion": ["fashion shows", "fashion boutique", "vintage clothing store", "designer store", "style workshops"],
@@ -223,7 +219,7 @@ def extract_information(user_input):
         "tea tasting", "coffee tasting", "cheese tasting", "chocolate workshop", "ghost tour",
         "literary tour", "film tour", "farm visit", "market", "antique hunting", "craft fair",
         "biking", "painting class", "drawing class", "sculpture class", "photography class",
-        "distillery tour", "cider tasting", "laser tag", "bowling", "mini golf", "go-karting", "bumper cars", "board game cafe",
+        "distillery tour", "cider tasting", "laser tag", "bowling", "mini golf", "go karting", "bumper car", "board game cafe",
         "paintball", "aquapark", "roller disco", "karaoke", "bouldering", "indoor skydiving",
         "theme restaurant", "magic show", "puppet show", "ice bar", "dinner theater",
         "comedy club", "jazz club", "planetarium", "murder mystery dinner", "virtual reality",
@@ -296,8 +292,8 @@ def extract_information(user_input):
         break  # Assuming the first match is the desired one; remove or modify if multiple day specifications can occur.
     travel_plan_state.update_preferences(num_days=num_days)
 
-    del nlp
-    gc.collect()
+    # del nlp
+    # gc.collect()
 
     return location, num_days, food_preferences, activity_preferences, hobby_preferences
 
@@ -407,7 +403,7 @@ def get_meal_options(food_preferences, location, num_days):
         # Check if food_preferences is empty
         if not food_preferences:
             # If no food_preferences specified, form a general query
-            query = f"{meal_type}"
+            query = f"popular {meal_type} place"
             print(f"Restaurant {meal_type} day {num_days}")
             places = get_yelp_data(query, location)  # Adjust limit as needed
             if places:
@@ -531,7 +527,7 @@ def is_location_in_uk(location):
 
 
 def chat_gpt(messages):
-    user_input = messages.lower()
+    user_input = messages
     location, num_days, food_preferences, activity_preferences, hobby_preferences = extract_information(user_input)
     if not location and travel_plan_state.location:
         location = travel_plan_state.location
@@ -618,15 +614,16 @@ def chat_gpt(messages):
     if meal_options:
         prompt_summary += "Meal options:\n"
         for meal_type, meals in meal_options.items():
-            prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join([f"{meal['name']}" for meal in meals[:2]]) + "\n"  # Limit to 2 examples per meal type
+            prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join([f"{meal['name']}" for meal in meals]) + "\n"
 
     # Summarize activities
     if all_activities:
-        prompt_summary += "Activities: " + ", ".join([activity['name'] for activity in all_activities[:3]]) + "\n"  # Limit to 3 examples
+        prompt_summary += "Activities: " + ", ".join([activity['name'] for activity in all_activities]) + "\n"
 
     # Add hotel recommendations
     if hotels:
-        prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:2]]) + "\n"  # Limit to 2 examples
+        prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"  # Limit to 5 examples
+        prompt_summary += "Give options to users at the end and don't be putting users in different hotels for different days.\n"
 
     # Include the original user input for context
     prompt_summary += "User's request: " + user_input + "\n"
@@ -641,8 +638,8 @@ def chat_gpt(messages):
                 {"role": "system", "content": "You are a helpful travel agent designed to provide concise travel advice and recommendations."},
                 {"role": "user", "content": prompt_summary}
             ],
-            temperature=0.5,  # Slightly more deterministic
-            max_tokens=300,  # Limit the response length
+            temperature=0.55,
+            max_tokens=450, 
         )
         chat_response = response.choices[0].message.content
     except Exception as e:
@@ -650,5 +647,4 @@ def chat_gpt(messages):
 
     
     return chat_response
-
 

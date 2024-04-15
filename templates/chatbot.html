@@ -133,6 +133,10 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
+        
+        .back-arrow {
+            color: black; /* Ensures the icon is black */
+        }
 
 
 /* You might already have some of these styles; adjust them as needed */
@@ -164,6 +168,15 @@
     </style>
 </head>
 <body>
+    <!-- Back Arrow Button -->
+    <div class="container mt-3">
+        <a href="/" class="btn btn-light border">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+            </svg>
+            Back
+        </a>
+    </div>
     <!-- Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -199,17 +212,36 @@
     </div>
   
     <div class="container py-5">
-        <h1 class="text-center mb-4">Travel Chatbot</h1>
+        <h1 class="text-center mb-4">Peronsalized Travel Chat Bot Powered by Chat-GPT</h1>
                
         <div id="chatbox">
             <div id="examplePrompts" class="mb-3">
                 <h2 class="text-center mb-4">Get Started with Examples</h2>
                 <div class="d-flex justify-content-center flex-wrap">
                     <!-- Example Prompt 1 -->
-                    <div class="m-2 prompt-box" onclick="selectPrompt('Location: Paris, Best Food: Croissants, Best Activities: Visiting the Louvre')">
-                        <p><strong>Location:</strong> Paris</p>
-                        <p><strong>Best Food:</strong> Croissants</p>
-                        <p><strong>Best Activities:</strong> Visiting the Louvre</p>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to London for a day')">
+                        <p><strong>Location:</strong> London</p>
+                        <p><strong>Description:</strong> The capital city is a must-visit, with landmarks like the British Museum, Buckingham Palace, and the Tower of London. It's a hub of history, culture, and diversity.</p>
+                    </div>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Manchester for a day')">
+                        <p><strong>Location:</strong> Manchester</p>
+                        <p><strong>Description:</strong> Known for its rich industrial heritage and vibrant music scene, Manchester offers museums like the Museum of Science and Industry and sports attractions, including Old Trafford.</p>
+                    </div>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Liverpool for a day')">
+                        <p><strong>Location:</strong> Liverpool</p>
+                        <p><strong>Description:</strong> Famous for The Beatles and its maritime history, Liverpool features the Beatles Story museum, art galleries, and the historic waterfront.</p>
+                    </div>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Edinburgh for a day')">
+                        <p><strong>Location:</strong> Edinburgh</p>
+                        <p><strong>Description:</strong> Known for its historic and architectural attractions, this Scottish capital hosts the famous Edinburgh Castle and the annual Edinburgh Festival Fringe, the world's largest arts festival.</p>
+                    </div>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Cardiff for a day')">
+                        <p><strong>Location:</strong> Cardiff</p>
+                        <p><strong>Description:</strong> The capital of Wales, Cardiff is known for Cardiff Castle, the Wales Millennium Centre, and its old and new juxtaposed architecture.</p>
+                    </div>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Brighton for a day')">
+                        <p><strong>Location:</strong> Brighton</p>
+                        <p><strong>Description:</strong> A vibrant seaside town, known for its lively arts scene, LGBTQ+ friendly culture, and attractions like the Brighton Pier and the Royal Pavilion.</p>
                     </div>
                     <!-- Add more boxes for each set of example prompts as needed -->
                 </div>
@@ -246,6 +278,13 @@
                 messageDiv.appendChild(newUserMessage);
                 chatbox.appendChild(messageDiv);
 
+                // Dynamically create the loading spinner and append it after the user's message
+                var spinnerDiv = document.createElement('div');
+                spinnerDiv.classList.add('spinner-border', 'text-primary');
+                spinnerDiv.setAttribute('role', 'status');
+                spinnerDiv.innerHTML = '<span class="visually-hidden">Loading...</span>';
+                chatbox.appendChild(spinnerDiv); // Append spinner to the chatbox
+
                 // Clear the input box and ensure the chatbox scrolls to the bottom
                 document.getElementById('userInput').value = '';
                 chatbox.scrollTop = chatbox.scrollHeight;
@@ -279,7 +318,13 @@
                     chatbox.appendChild(botResponse);
 
                     chatbox.scrollTop = chatbox.scrollHeight;
+                    chatbox.removeChild(spinnerDiv); // Remove spinner from the chatbox
                 })
+                .catch(error => {
+                    console.error('Error:', error);
+
+                    chatbox.removeChild(spinnerDiv); // Ensure to remove spinner on error too
+                });
             }
         };
 
