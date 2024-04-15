@@ -515,13 +515,15 @@ def calculate_proximity_score(hotel_location, activities, food_places):
 def is_location_in_uk(location):
     try:
         result = geocoder.geocode(location, countrycode='gb')  # Limit search to Great Britain
+        print(f"Geocoding results for {location}: {result}")  # Debug print to see what is returned
         for res in result:
             if 'components' in res and 'country' in res['components']:
                 if res['components']['country'] == 'United Kingdom':
                     return True
     except Exception as e:
-        print(f"Geocoding error: {str(e)}")  # Consider more sophisticated logging or error handling
+        print(f"Geocoding error: {str(e)}")
     return False
+
 
 
 
@@ -549,7 +551,8 @@ def chat_gpt(messages):
     
     # Proceed with location-specific logic for travel-related inquiries
     if location:
-        if not is_location_in_uk(location):
+        temp_location = f"{location}, UK"
+        if not is_location_in_uk(temp_location):
             system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
             user_message = {"role": "user", "content": "Tell the user that they need to include a destination within the UK and provide popular cities to visit."}
             try:
@@ -591,13 +594,19 @@ def chat_gpt(messages):
     meal_options = get_meal_options(food_preferences, location, num_days)
     all_activities = get_activity_options(activity_preferences, location, num_days)
 
-    if not all_activities:
-        return "I'm sorry, but I couldn't find any activity options for your trip based on the given preferences."
-
-    # Use the length of all_activities list to check if there are enough activities
     if len(all_activities) < 2 * num_days:
-        return "I'm sorry, but I couldn't find enough diverse activity options for your trip."
-    # The rest of your function...
+        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
+        user_message = {"role": "user", "content": f"Tell the user that there wasn't enough activities for their trip. After telling them this, see if you can answer their input: {user_input}"}
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[system_message, user_message],
+                temperature=0.7  # Adjust for creativity as needed
+            )
+            chat_response = response.choices[0].message.content
+            return chat_response
+        except Exception as e:
+            return f"Sorry, I encountered an issue: {str(e)}"
 
     hotels = get_hotel_data(location, all_activities, meal_options["breakfast"] + meal_options["lunch"] + meal_options["dinner"])
     travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
@@ -648,3 +657,23 @@ def chat_gpt(messages):
     
     return chat_response
 
+# user_input = "I want to go to Lake District for a day."
+# doc = nlp(user_input)
+# print("Recognized entities and their labels:")
+# for ent in doc.ents:
+#     print(f"{ent.text} ({ent.label_})")
+# # Extract location
+# location = None
+# for ent in doc.ents:
+#     if ent.label_ == "GPE":  # GPE stands for geopolitical entity
+#         location = ent.text
+#         if location == "uk":
+#             location = None
+#         break
+
+# if location:
+#     print(f"Extracted location: {location}")
+# else:
+#     print("No suitable location found.")
+# location += ", UK"
+# is_location_in_uk(location)
