@@ -534,7 +534,7 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content, token = 400):
+def gpt_response(user_content, token = 450):
     system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
     system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
     system_message = {"role": "system", "content": system_content}
@@ -543,7 +543,7 @@ def gpt_response(user_content, token = 400):
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[system_message, user_message],
-            temperature=0.6,
+            temperature=0.5,
             max_tokens=token
         )
         chat_response = response.choices[0].message.content
@@ -591,7 +591,7 @@ def chat_gpt(messages):
             prompt_summary += "Meal options:\n"
             for meal_type, meals in meal_options.items():
                 meal_descriptions = [
-                    f"{meal['name']} with a rating of {meal.get('rating', 'No rating')} stars and open from {meal.get('opening_times', 'Not available')}" 
+                    f"{meal['name']} with a rating of {meal.get('rating', 'No rating')} stars" 
                     for meal in meals
                 ]
                 prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join(meal_descriptions) + "\n"
@@ -599,20 +599,20 @@ def chat_gpt(messages):
         # Summarize activities
         if all_activities:
             activity_descriptions = [
-                f"{activity['name']} with a rating of {activity.get('rating', 'No rating')} stars and open from {activity.get('opening_times', 'Not available')}" 
+                f"{activity['name']} with a rating of {activity.get('rating', 'No rating')} stars" 
                 for activity in all_activities
             ]
             prompt_summary += "Activities: " + ", ".join(activity_descriptions) + "\n"
 
         # Add hotel recommendations
         if hotels:
-            prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"  # Limit to 5 examples
+            prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:3]]) + "\n"  # Limit to 3 examples
 
         # Include the original user input for context
         prompt_summary += "User's request: " + user_input + "\n"
 
         # Sign off with a directive
-        prompt_summary += "Organize the informataion into a detailed, yet concise travel plan. Include ratings for the busiensses."
+        prompt_summary += "Organize the informataion into a detailed, yet concise travel plan. Let users know ratings of businesses and to check opening times themselves."
         print(prompt_summary)
 
         return gpt_response(prompt_summary)
