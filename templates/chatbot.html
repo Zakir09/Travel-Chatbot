@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <title>Chatbot Interface</title>
+    <title>AI Travel Gudie - Chatbot</title>
     <style>
         body {
             background-color: #f7f7f7;
@@ -212,38 +212,32 @@
     </div>
   
     <div class="container py-5">
-        <h1 class="text-center mb-4">Peronsalized Travel Chat Bot Powered by Chat-GPT</h1>
+        <h1 class="text-center mb-4">Peronsalized UK Travel Chat Bot Powered by OpenAI</h1>
                
         <div id="chatbox">
             <div id="examplePrompts" class="mb-3">
                 <h2 class="text-center mb-4">Get Started with Examples</h2>
                 <div class="d-flex justify-content-center flex-wrap">
-                    <!-- Example Prompt 1 -->
                     <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to London for a day')">
                         <p><strong>Location:</strong> London</p>
-                        <p><strong>Description:</strong> The capital city is a must-visit, with landmarks like the British Museum, Buckingham Palace, and the Tower of London. It's a hub of history, culture, and diversity.</p>
+                        <p><strong>Description:</strong> Explore London's iconic landmarks like the British Museum, Buckingham Palace, and the Tower of London.</p>
                     </div>
                     <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Manchester for a day')">
                         <p><strong>Location:</strong> Manchester</p>
-                        <p><strong>Description:</strong> Known for its rich industrial heritage and vibrant music scene, Manchester offers museums like the Museum of Science and Industry and sports attractions, including Old Trafford.</p>
+                        <p><strong>Description:</strong> Discover Manchester's industrial roots and vibrant music scene, with highlights including the Museum of Science and Industry.</p>
                     </div>
-                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Liverpool for a day')">
-                        <p><strong>Location:</strong> Liverpool</p>
-                        <p><strong>Description:</strong> Famous for The Beatles and its maritime history, Liverpool features the Beatles Story museum, art galleries, and the historic waterfront.</p>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Glasgow for a day')">
+                        <p><strong>Location:</strong> Glasgow</p>
+                        <p><strong>Description:</strong> Experience Glasgow's Victorian architecture and cultural hotspots like the Kelvingrove and Riverside museums.</p>
                     </div>
-                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Edinburgh for a day')">
-                        <p><strong>Location:</strong> Edinburgh</p>
-                        <p><strong>Description:</strong> Known for its historic and architectural attractions, this Scottish capital hosts the famous Edinburgh Castle and the annual Edinburgh Festival Fringe, the world's largest arts festival.</p>
+                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Belfast for a day')">
+                        <p><strong>Location:</strong> Belfast</p>
+                        <p><strong>Description:</strong> Visit Belfast for its maritime history at Titanic Belfast and the vibrant Cathedral Quarter.</p>
                     </div>
                     <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Cardiff for a day')">
                         <p><strong>Location:</strong> Cardiff</p>
-                        <p><strong>Description:</strong> The capital of Wales, Cardiff is known for Cardiff Castle, the Wales Millennium Centre, and its old and new juxtaposed architecture.</p>
-                    </div>
-                    <div class="m-2 prompt-box" onclick="selectPrompt('Give me a trip plan to Brighton for a day')">
-                        <p><strong>Location:</strong> Brighton</p>
-                        <p><strong>Description:</strong> A vibrant seaside town, known for its lively arts scene, LGBTQ+ friendly culture, and attractions like the Brighton Pier and the Royal Pavilion.</p>
-                    </div>
-                    <!-- Add more boxes for each set of example prompts as needed -->
+                        <p><strong>Description:</strong> Tour Cardiff, a blend of historical and modern architecture, featuring Cardiff Castle and the Wales Millennium Centre.</p>
+                    </div>                    
                 </div>
             </div> 
         <!-- Chat messages will appear here -->

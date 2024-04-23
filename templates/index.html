@@ -3,9 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>AI Travel Gudie - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .navbar-brand {
+            font-weight: 500; /* Medium for brand */
+        }
+        .nav-link {
+            font-weight: 400; /* Regular for links */
+        }
+        .container, .container-fluid {
+            max-width: 90%; /* Restricts the container to 90% width */
+            margin: auto; /* Centers the container */
+        }
+        .welcome-section, .about-section, .destinations-section, .chatbot-section {
+            padding: 40px 0; /* Adds space above and below each section */
+        }
+        .bold-text {
+            font-weight: 700; /* Bold for main text */
+            font-size: 24px; /* Adjust size as needed */
+            margin-bottom: 20px;
+        }
+        .regular-text {
+            font-weight: 400; /* Regular for secondary text */
+            font-size: 16px;
+        }
+        .about-btn, .destinations-btn, .chat-btn {
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .about-btn:hover, .destinations-btn:hover, .chat-btn:hover {
+            background-color: white;
+            text-decoration: none;
+            color: black;
+            cursor: pointer;
+        }
+        .destination {
+            margin-bottom: 30px;
+        }
+        .destination img {
+            width: 100%; /* Ensures the image fills the column */
+            height: auto;
+            border-radius: 4px;
+        }
+        .destination-name {
+            margin-top: 10px;
+            font-size: 18px; /* Size of the destination name */
+        }
+        .chat-logo {
+            width: 60px; /* Adjust as needed */
+            height: 60px;
+            border-radius: 50%; /* Creates a circular shape */
+            margin-right: 20px; /* Space between logo and text */
+        }
+        .chat-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .footer {
+            background-color: #f8f9fa; /* Light grey background */
+            color: #6c757d; /* Grey text */
+            padding: 20px 0; /* Padding above and below the text */
+            font-size: 14px; /* Smaller font size for footer text */
+            border-top: 1px solid #dee2e6; /* Adds a line at the top of the footer */
+        }
+
+        .footer a {
+            color: #007bff; /* Bootstrap primary blue for links */
+            text-decoration: none; /* Removes underline from links */
+        }
+
+        .footer a:hover {
+            text-decoration: underline; /* Adds underline on hover for better user experience */
+        }
+
+        @media (max-width: 992px) {
+            .welcome-section, .destinations-section, .chatbot-section, .about-section {
+                flex-direction: column; /* Stacks the text and image vertically on smaller screens */
+            }
+            .about-section {
+                flex-direction: column-reverse; /* Reverses the order so the text and button are above the image */
+            }
+            .destinations-section img {
+                width: 80%;
+                height: auto;
+            }
+            .about-section .text-center {
+                margin-top: 20px; /* Adds space between the button and the image */
+            }
+            .text-center {
+                margin-bottom: 20px; /* Adds space between text and image when stacked */
+            }
+            .chat-text {
+                flex-direction: column;
+                align-items: flex-start; 
+            }
+        }
+
+    </style>
 </head>
 <body>
-    <a href="/chatbot">Chatbot</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">AI Travel Guide</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chatbot">Chatbot</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid welcome-section d-flex align-items-center">
+        <div class="col-md-6 text-center">
+            <div class="text-center">
+                <p class="bold-text">Welcome to the AI-Powered UK Travel Guide!</p>
+                <p class="regular-text">Discover the features we offer to make your experience unforgettable.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <img src="{{ url_for('static', filename='images/london_scenary.jpg') }}" alt="Location Image" class="img-fluid">
+        </div>
+    </div>
+    <div class="container-fluid about-section d-flex align-items-center">
+        <div class="col-md-6">
+            <img src="{{ url_for('static', filename='images/vibrant_calm_city.jpg') }}" alt="Other Image" class="img-fluid">
+        </div>
+        <div class="col-md-6 text-center">
+            <div class="text-center">
+                <p class="bold-text">Check Out What Our Application Is About</p>
+                <p class="regular-text">Learn more about how our application can help you streamline your processes and improve efficiency.</p>
+                <a href="/" class="about-btn">Learn More</a>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid destinations-section text-center">
+        <p class="bold-text">Discover the UK</p>
+        <p class="regular-text">Check out these top destinations that our users love!</p>
+        <div class="row">
+            <div class="col-md-4 destination">
+                <img src="{{ url_for('static', filename='images/glasgow.jpg') }}" alt="Destination 1">
+                <p class="destination-name">Glasgow</p>
+            </div>
+            <div class="col-md-4 destination">
+                <img src="{{ url_for('static', filename='images/belfast.jpg') }}" alt="Destination 2">
+                <p class="destination-name">Belfast</p>
+            </div>
+            <div class="col-md-4 destination">
+                <img src="{{ url_for('static', filename='images/bristol.jpg') }}" alt="Destination 3">
+                <p class="destination-name">Bristol</p>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid chatbot-section d-flex align-items-center">
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <img src="{{ url_for('static', filename='images/bot.png') }}" alt="Chatbot Logo" class="chat-logo">
+            <div class="chat-text">
+                <p class="bold-text">Lee</p>
+                <p class="regular-text">Your personal travel assistant.</p>
+            </div>
+        </div>
+        <div class="col-md-6 text-center">
+            <a href="/chatbot" class="chat-btn">Chat with me</a>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="footer-text">© 2024 AI Travel Gudie. All rights reserved.</p>
+            <p class="footer-text">Follow us on:
+                <a href="http://facebook.com" target="_blank">Facebook</a>,
+                <a href="http://twitter.com" target="_blank">Twitter</a>,
+                <a href="http://instagram.com" target="_blank">Instagram</a>
+            </p>
+        </div>
+    </footer>    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

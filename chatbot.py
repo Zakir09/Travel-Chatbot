@@ -116,6 +116,16 @@ def get_extended_synonyms(word):
     manual_related = manual_synonyms.get(word, set())
     return synonyms.union(manual_related)
 
+def determine_intent(lemmatized_text):
+    intent_keywords = {
+        'plan_trip': ['plan', 'trip', 'visit', 'holiday', 'vacation', 'book', 'schedule', 'organize', 'arrange'],
+        'advice': ['advice', 'info', 'information', 'details', 'tell me about', 'what to do in', 'recommend', 'suggestions']
+    }
+    for intent, keywords in intent_keywords.items():
+        if any(keyword in lemmatized_text for keyword in keywords):
+            return intent
+    return None  # Default to None if no specific intent is detected
+
 
 def extract_information(user_input):
     print("Processing input:", user_input)  # To see exactly what is being processed
@@ -127,13 +137,14 @@ def extract_information(user_input):
     for ent in doc.ents:
         print(f"{ent.text} ({ent.label_})")
     # Extract location
-    location = None
+    location = travel_plan_state.location
     for ent in doc.ents:
         if ent.label_ == "GPE":  # GPE stands for geopolitical entity
             location = ent.text
-            if location == "uk":
-                location = None
-            break
+            if location == "uk" or not is_location_in_uk(location):
+                location = travel_plan_state.location 
+            if is_location_in_uk(location):
+                break
     
     if location:
         print(f"Extracted location: {location}")
@@ -156,7 +167,7 @@ def extract_information(user_input):
         "halal", "korean", "vietnamese", "spanish", "greek", "lebanese", "turkish",
         "ethiopian", "caribbean", "peruvian", "brazilian", "african", "european",
         "gluten free", "bakery", "patisserie", "gelato", "ice cream", "dessert", "coffee",
-        "tea", "bistro", "pizzeria", "burger", "pasta", "dim sum", "noodle", "ramen",
+        "bistro", "pizzeria", "burger", "pasta", "dim sum", "noodle", "ramen",
         "taco", "burrito", "pizza", "kebab", "falafel", "soul food", "farm to table",
         "polish", "russian", "belgian", "argentinian", "chilean", "salvadoran", "cuban",
         "filipino", "indonesian", "malaysian", "mongolian", "moroccan", "persian",
@@ -235,6 +246,8 @@ def extract_information(user_input):
     # Lemmatize user input
     lemmatized_text = " ".join([token.lemma_ for token in doc])
 
+    user_intent = determine_intent(lemmatized_text)
+
     for hobby, activities in hobby_to_activity_map.items():
         hobby_synonyms = get_extended_synonyms(hobby)
         if any(hobby_syn in lemmatized_text for hobby_syn in hobby_synonyms):
@@ -295,7 +308,7 @@ def extract_information(user_input):
     # del nlp
     # gc.collect()
 
-    return location, num_days, food_preferences, activity_preferences, hobby_preferences
+    return location, user_intent
 
 
 def get_yelp_data(query, location, min_rating = 4.2, limit=40, radius=10000):
@@ -323,64 +336,71 @@ def get_yelp_data(query, location, min_rating = 4.2, limit=40, radius=10000):
     else:
         return None
 
-
-def get_activity_options(activity_preferences, location, num_days):
-    def remove_duplicates(places):
+def remove_duplicates(places):
         unique_places = {}
         for place in places:
             if place['id'] not in unique_places:
                 unique_places[place['id']] = place
-        print(f"Removed duplicates, {len(unique_places)} unique places found.")  # Debug
+        print(f"Removed duplicates: {len(unique_places)} unique places found after processing.")
         return list(unique_places.values())
-    
+
+def get_activity_options(activity_preferences, location, num_days):
     general_search_term = "activities"
-    print("Fetching general activities...")  # Debug
+    print("Starting to fetch general activities...")  # Initial debug statement
     general_activities = get_yelp_data(general_search_term, location, limit=40)
     
+    if general_activities:
+        print(f"Found {len(general_activities)} general activities.")
+    else:
+        print("No general activities found.")
+    
     specific_activities = []
-
-    # Remove duplicates and ensure the list only contains unique activities
-    general_activities = remove_duplicates(general_activities)
+    general_activities = remove_duplicates(general_activities)  # Apply removal of duplicates and get the result
 
     for preference in activity_preferences:
+        print(f"\nProcessing activity preference: {preference}")
         if preference.lower() != general_search_term:
-            print(f"Fetching activities for preference: {preference}")  # Debug
             specific_results = get_yelp_data(preference, location, limit=40)
             if specific_results:
-                print(f"Found {len(specific_results)} activities for preference: {preference}")  # Debug
-            specific_activities.extend(specific_results or [])
-    
-    specific_activities = remove_duplicates(specific_activities)
+                print(f"Found {len(specific_results)} specific activities for {preference}.")
+                specific_activities.extend(specific_results)
+            else:
+                print(f"No specific activities found for {preference}.")
 
-    # Debug statements for visibility
-    print(f"General Activities Found: {len(general_activities)}")
-    print(f"Specific Activities Found: {len(specific_activities)}")
-    
-    # Shuffle to randomize the order and improve diversity
+    specific_activities = remove_duplicates(specific_activities)  # Remove duplicates from specific results
+
+    # Additional debug statements for summary
+    print(f"\nTotal general activities retained: {len(general_activities)}")
+    print(f"Total specific activities retained: {len(specific_activities)}")
+
+    # Shuffle for diversity
     random.shuffle(general_activities)
     random.shuffle(specific_activities)
 
     activity_selection = []
-    activities_per_day = 3  # Desired number of activities per day
+    activities_per_day = 3  # Set the desired number of activities per day
 
     for day in range(num_days):
         today_activities = []
-        # Alternate between specific and general activities to ensure diversity
+        print(f"\nScheduling activities for Day {day + 1}:")
+        # Alternate between specific and general activities
         for i in range(activities_per_day):
             if i % 2 == 0 and specific_activities:
-                today_activities.append(specific_activities.pop(0))
-                print(f"Added specific activity for day {day + 1}")  # Debug
+                activity = specific_activities.pop(0)
+                today_activities.append(activity)
+                print(f"Added specific activity: {activity['name']} with ratings {activity.get('rating', 'No rating')}")
             elif general_activities:
-                today_activities.append(general_activities.pop(0))
-                print(f"Added general activity for day {day + 1}")  # Debug
+                activity = general_activities.pop(0)
+                today_activities.append(activity)
+                print(f"Added general activity: {activity['name']} with ratings {activity.get('rating', 'No rating')}")
 
-        # If not enough activities were added (e.g., due to running out of specific activities),
-        # fill in the remaining slots with general activities
+        # Fill in remaining slots if necessary
         while len(today_activities) < activities_per_day and general_activities:
-            today_activities.append(general_activities.pop(0))
-            print(f"Filled in with general activity for day {day + 1} due to shortage.")  # Debug
+            activity = general_activities.pop(0)
+            today_activities.append(activity)
+            print(f"Added general activity to fill: {activity['name']} with ratings {activity.get('rating', 'No rating')}")
 
-        print(f"Activities for day {day + 1}: {[activity['name'] for activity in today_activities]}")  # Debug
+        print(f"Final activities for Day {day + 1}: {[activity['name'] for activity in today_activities]}")
         activity_selection.extend(today_activities)
 
     return activity_selection
@@ -388,37 +408,25 @@ def get_activity_options(activity_preferences, location, num_days):
 
 def get_meal_options(food_preferences, location, num_days):
     meal_options = {"breakfast": [], "lunch": [], "dinner": []}
-    
-    # Function to remove duplicates based on Yelp business ID
-    def remove_duplicates(places):
-        unique_places = {}
-        for place in places:
-            if place['id'] not in unique_places:
-                unique_places[place['id']] = place
-        return list(unique_places.values())
 
     for meal_type in ["breakfast", "lunch", "dinner"]:
         all_places = []  # Collect all places for all preferences for each meal
-
-        # Check if food_preferences is empty
-        if not food_preferences:
-            # If no food_preferences specified, form a general query
-            query = f"popular {meal_type} place"
-            print(f"Restaurant {meal_type} day {num_days}")
-            places = get_yelp_data(query, location)  # Adjust limit as needed
-            if places:
-                print(f"Found {len(places)} places for query: {query}")
-                all_places.extend(places)
-            else:
-                print(f"No places found for query: {query}")
+        query = f"{meal_type} place"
+        print(f"Restaurant {meal_type} day {num_days}")
+        places = get_yelp_data(query, location)  # Adjust limit as needed
+        if places:
+            print(f"Found {len(places)} places for query: {query}")
+            all_places.extend(places)
         else:
+            print(f"No places found for query: {query}")
+        if food_preferences:
             # Loop through each food preference and make separate requests,
             # explicitly appending "restaurant" to each preference to form the query
             for preference in food_preferences:
-                query = f"{preference} {meal_type}"
+                query = f"{preference} {meal_type} place"
                 print(f"{preference} restaurant {meal_type} day {num_days}")
                 print(f"Fetching data for: {query}, Location: {location}")
-                places = get_yelp_data(query, location)  # Adjust limit as needed
+                places = get_yelp_data(query, location, limit=5)  # Adjust limit as needed
                 if places:
                     print(f"Found {len(places)} places for query: {query}")
                     all_places.extend(places)
@@ -434,6 +442,8 @@ def get_meal_options(food_preferences, location, num_days):
                 meal_options[meal_type].append(selected_place)
     
     return meal_options
+
+
 
 
 
@@ -515,7 +525,6 @@ def calculate_proximity_score(hotel_location, activities, food_places):
 def is_location_in_uk(location):
     try:
         result = geocoder.geocode(location, countrycode='gb')  # Limit search to Great Britain
-        print(f"Geocoding results for {location}: {result}")  # Debug print to see what is returned
         for res in result:
             if 'components' in res and 'country' in res['components']:
                 if res['components']['country'] == 'United Kingdom':
@@ -524,138 +533,92 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-
-
+def gpt_response(user_content):
+    system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
+    system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
+    system_message = {"role": "system", "content": system_content}
+    user_message = {"role": "user", "content": user_content}
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[system_message, user_message],
+            temperature=0.6,
+            max_tokens=600
+        )
+        chat_response = response.choices[0].message.content
+        return chat_response
+    except Exception as e:
+        return f"Sorry, I encountered an issue: {str(e)}"
 
 
 def chat_gpt(messages):
     user_input = messages
-    location, num_days, food_preferences, activity_preferences, hobby_preferences = extract_information(user_input)
-    if not location and travel_plan_state.location:
-        location = travel_plan_state.location
-    # Check if the input is a general conversation
-    if (not location or location == travel_plan_state.location):
-        # Handle general conversation using GPT-4
-        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on travel destinations in the UK."}
-        user_message = {"role": "user", "content": user_input}
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[system_message, user_message],
-                temperature=0.7  # Adjust for creativity as needed
-            )
-            chat_response = response.choices[0].message.content
-            return chat_response
-        except Exception as e:
-            return f"Sorry, I encountered an issue: {str(e)}"
-    
-    # Proceed with location-specific logic for travel-related inquiries
-    if location:
-        temp_location = f"{location}, UK"
-        if not is_location_in_uk(temp_location):
-            system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
-            user_message = {"role": "user", "content": "Tell the user that they need to include a destination within the UK and provide popular cities to visit."}
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[system_message, user_message],
-                    temperature=0.7  # Adjust for creativity as needed
-                )
-                chat_response = response.choices[0].message.content
-                return chat_response
-            except Exception as e:
-                return f"Sorry, I encountered an issue: {str(e)}"
+    location, intent = extract_information(user_input)
+    print(intent)
+    if intent == 'plan_trip':
+        # Proceed with location-specific logic for travel-related inquiries
+        if location:
+            if is_location_in_uk(location):
+                travel_plan_state.update_preferences(location=location)
+                location += ", UK"
         else:
-            travel_plan_state.update_preferences(location=location)
-            location += ", UK"
+            user_content = "Tell the user that they need to include a destination within the UK and provide popular places"
+            return gpt_response(user_content)
+
+            
+        num_days = travel_plan_state.num_days
+
+        print(f"{location}\n{travel_plan_state.food_preferences}\n{travel_plan_state.activity_preferences}\n{travel_plan_state.hobby_preferences}\n{num_days}\n")
+
+        meal_options = get_meal_options(travel_plan_state.food_preferences, location, num_days)
+        all_activities = get_activity_options(travel_plan_state.activity_preferences, location, num_days)
+
+        if len(all_activities) < 2 * num_days:
+            user_content = f"Tell the user that there wasn't enough activities for their trip. After telling them this, see if you can answer their input: {user_input}"
+            return gpt_response(user_content)
+
+        hotels = get_hotel_data(location, all_activities, meal_options["breakfast"] + meal_options["lunch"] + meal_options["dinner"])
+        travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
+        
+
+        # Start with a clear and concise introduction for the itinerary
+        prompt_summary = f"Create a concise travel itinerary for {num_days}-day trip to {location}, including dining, activities, and hotel recommendations.\n"
+        # Add hobbies and interests in a summarized form
+        if travel_plan_state.hobby_preferences:
+            prompt_summary += f"Hobbies/Interests: {', '.join(travel_plan_state.hobby_preferences)}\n"
+        # Summarize meal options
+        if meal_options:
+            prompt_summary += "Meal options:\n"
+            for meal_type, meals in meal_options.items():
+                meal_descriptions = [
+                    f"{meal['name']} with a rating of {meal.get('rating', 'No rating')} stars and open from {meal.get('opening_times', 'Not available')}" 
+                    for meal in meals
+                ]
+                prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join(meal_descriptions) + "\n"
+
+        # Summarize activities
+        if all_activities:
+            activity_descriptions = [
+                f"{activity['name']} with a rating of {activity.get('rating', 'No rating')} stars and open from {activity.get('opening_times', 'Not available')}" 
+                for activity in all_activities
+            ]
+            prompt_summary += "Activities: " + ", ".join(activity_descriptions) + "\n"
+
+        # Add hotel recommendations
+        if hotels:
+            prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"  # Limit to 5 examples
+            prompt_summary += "Give options to users at the end and don't be putting users in different hotels for different days.\n"
+
+        # Include the original user input for context
+        prompt_summary += "User's request: " + user_input + "\n"
+
+        # Sign off with a directive
+        prompt_summary += "Organize this into a detailed, yet concise travel plan. Find different ways to include ratings for the busiensses."
+        print(prompt_summary)
+
+        return gpt_response(prompt_summary)
     else:
-        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
-        user_message = {"role": "user", "content": "Tell the user that they need to include a destination within the UK and provide popular places"}
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[system_message, user_message],
-                temperature=0.7  # Adjust for creativity as needed
-            )
-            chat_response = response.choices[0].message.content
-            return chat_response
-        except Exception as e:
-            return f"Sorry, I encountered an issue: {str(e)}"
-    num_days = travel_plan_state.num_days or 1
-    if food_preferences and travel_plan_state.food_preferences:
-        food_preferences = travel_plan_state.food_preferences
-    if activity_preferences and travel_plan_state.activity_preferences:
-        activity_preferences = travel_plan_state.activity_preferences
-    if hobby_preferences and travel_plan_state.hobby_preferences:
-        hobby_preferences = travel_plan_state.hobby_preferences
-
-    print(f"{location}\n{food_preferences}\n{activity_preferences}\n{hobby_preferences}\n{num_days}")
-
-    meal_options = get_meal_options(food_preferences, location, num_days)
-    all_activities = get_activity_options(activity_preferences, location, num_days)
-
-    if len(all_activities) < 2 * num_days:
-        system_message = {"role": "system", "content": "You are a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions on places."}
-        user_message = {"role": "user", "content": f"Tell the user that there wasn't enough activities for their trip. After telling them this, see if you can answer their input: {user_input}"}
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[system_message, user_message],
-                temperature=0.7  # Adjust for creativity as needed
-            )
-            chat_response = response.choices[0].message.content
-            return chat_response
-        except Exception as e:
-            return f"Sorry, I encountered an issue: {str(e)}"
-
-    hotels = get_hotel_data(location, all_activities, meal_options["breakfast"] + meal_options["lunch"] + meal_options["dinner"])
-    travel_plan_state.update_plan(activity_options=all_activities, meal_options=meal_options, hotel_options=hotels)
-    
-
-    # Start with a clear and concise introduction for the itinerary
-    prompt_summary = f"Create a concise travel itinerary for {num_days}-day trip to {location}, including dining, activities, and hotel recommendations.\n"
-
-    # Add hobbies and interests in a summarized form
-    if hobby_preferences:
-        prompt_summary += f"Hobbies/Interests: {', '.join(hobby_preferences)}\n"
-
-    # Summarize meal options
-    if meal_options:
-        prompt_summary += "Meal options:\n"
-        for meal_type, meals in meal_options.items():
-            prompt_summary += f"- {meal_type.capitalize()}: " + ", ".join([f"{meal['name']}" for meal in meals]) + "\n"
-
-    # Summarize activities
-    if all_activities:
-        prompt_summary += "Activities: " + ", ".join([activity['name'] for activity in all_activities]) + "\n"
-
-    # Add hotel recommendations
-    if hotels:
-        prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"  # Limit to 5 examples
-        prompt_summary += "Give options to users at the end and don't be putting users in different hotels for different days.\n"
-
-    # Include the original user input for context
-    prompt_summary += "User's request: " + user_input + "\n"
-
-    # Sign off with a directive
-    prompt_summary += "Organize this into a detailed, yet concise travel plan."
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful travel agent designed to provide concise travel advice and recommendations."},
-                {"role": "user", "content": prompt_summary}
-            ],
-            temperature=0.55,
-            max_tokens=450, 
-        )
-        chat_response = response.choices[0].message.content
-    except Exception as e:
-        chat_response = f"Sorry, I encountered an issue: {str(e)}"
-
-    
-    return chat_response
+        return gpt_response(user_input)
 
 # user_input = "I want to go to Lake District for a day."
 # doc = nlp(user_input)
