@@ -118,8 +118,8 @@ def get_extended_synonyms(word):
 
 def determine_intent(lemmatized_text):
     intent_keywords = {
-        'plan_trip': ['plan', 'trip', 'visit', 'holiday', 'vacation', 'book', 'schedule', 'organize', 'arrange'],
-        'advice': ['advice', 'info', 'information', 'details', 'tell me about', 'what to do in', 'recommend', 'suggestions']
+        'advice': ['advice', 'info', 'information', 'details', 'tell me about', 'what to do in', 'recommend', 'suggestions'],
+        'plan_trip': ['plan', 'trip plan', 'trip', 'schedule', 'organize', 'arrange', 'itinerary']
     }
     for intent, keywords in intent_keywords.items():
         if any(keyword in lemmatized_text for keyword in keywords):
@@ -144,6 +144,7 @@ def extract_information(user_input):
             if location == "uk" or not is_location_in_uk(location):
                 location = travel_plan_state.location 
             if is_location_in_uk(location):
+                travel_plan_state.update_preferences(location=location)
                 break
     
     if location:
@@ -171,7 +172,7 @@ def extract_information(user_input):
         "taco", "burrito", "pizza", "kebab", "falafel", "soul food", "farm to table",
         "polish", "russian", "belgian", "argentinian", "chilean", "salvadoran", "cuban",
         "filipino", "indonesian", "malaysian", "mongolian", "moroccan", "persian",
-        "scandinavian", "swiss", "ukrainian", "venezuelan", "gluten-free", "lactose-free",
+        "scandinavian", "swiss", "ukrainian", "venezuelan", "lactose free",
         "paleo", "raw", "smoothies", "juice bar", "organic", "locally sourced",
         "health food", "ayurvedic", "kosher", "middle eastern", "nordic", "portuguese",
         "sri lankan", "tibetan", "welsh", "scottish", "irish", "hawaiian", "jamaican",
@@ -533,7 +534,7 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content):
+def gpt_response(user_content, token = 550):
     system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
     system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
     system_message = {"role": "system", "content": system_content}
@@ -543,7 +544,7 @@ def gpt_response(user_content):
             model="gpt-4",
             messages=[system_message, user_message],
             temperature=0.6,
-            max_tokens=600
+            max_tokens=token
         )
         chat_response = response.choices[0].message.content
         return chat_response
@@ -559,7 +560,6 @@ def chat_gpt(messages):
         # Proceed with location-specific logic for travel-related inquiries
         if location:
             if is_location_in_uk(location):
-                travel_plan_state.update_preferences(location=location)
                 location += ", UK"
         else:
             user_content = "Tell the user that they need to include a destination within the UK and provide popular places"
@@ -613,12 +613,12 @@ def chat_gpt(messages):
         prompt_summary += "User's request: " + user_input + "\n"
 
         # Sign off with a directive
-        prompt_summary += "Organize this into a detailed, yet concise travel plan. Find different ways to include ratings for the busiensses."
+        prompt_summary += "Take a look at the user's request and organize the informataion into a detailed, yet concise travel plan. Find different ways to include ratings for the busiensses."
         print(prompt_summary)
 
         return gpt_response(prompt_summary)
     else:
-        return gpt_response(user_input)
+        return gpt_response(user_input, token=250)
 
 # user_input = "I want to go to Lake District for a day."
 # doc = nlp(user_input)
