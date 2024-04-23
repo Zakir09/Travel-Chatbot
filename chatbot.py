@@ -534,7 +534,7 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content, token = 550):
+def gpt_response(user_content, token = 450):
     system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
     system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
     system_message = {"role": "system", "content": system_content}
