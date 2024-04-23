@@ -534,7 +534,7 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content, token = 399):
+def gpt_response(user_content, token = 400):
     system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
     system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
     system_message = {"role": "system", "content": system_content}
@@ -607,13 +607,12 @@ def chat_gpt(messages):
         # Add hotel recommendations
         if hotels:
             prompt_summary += "Hotel recommendations: " + ", ".join([hotel['hotel']['name'] for hotel in hotels[:5]]) + "\n"  # Limit to 5 examples
-            prompt_summary += "Give options to users at the end and don't be putting users in different hotels for different days.\n"
 
         # Include the original user input for context
         prompt_summary += "User's request: " + user_input + "\n"
 
         # Sign off with a directive
-        prompt_summary += "Take a look at the user's request and organize the informataion into a detailed, yet concise travel plan. Find different ways to include ratings for the busiensses."
+        prompt_summary += "Organize the informataion into a detailed, yet concise travel plan. Include ratings for the busiensses."
         print(prompt_summary)
 
         return gpt_response(prompt_summary)
