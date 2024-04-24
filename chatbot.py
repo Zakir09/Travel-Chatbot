@@ -130,7 +130,6 @@ def determine_intent(lemmatized_text):
 def extract_information(user_input):
     print("Processing input:", user_input)  # To see exactly what is being processed
     doc = nlp(user_input)
-    
     matcher = Matcher(nlp.vocab)
 
     print("Recognized entities and their labels:")
@@ -140,11 +139,9 @@ def extract_information(user_input):
     location = travel_plan_state.location
     for ent in doc.ents:
         if ent.label_ == "GPE":  # GPE stands for geopolitical entity
-            location = ent.text
-            if location == "uk" or not is_location_in_uk(location):
+            if ent.text != "UK" and is_location_in_uk(ent.text):
+                travel_plan_state.update_preferences(location=ent.text)
                 location = travel_plan_state.location 
-            if is_location_in_uk(location):
-                travel_plan_state.update_preferences(location=location)
                 break
     
     if location:
@@ -534,7 +531,7 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content, token = 450):
+def gpt_response(user_content, token = 350):
     system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
     system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
     system_message = {"role": "system", "content": system_content}
@@ -543,7 +540,7 @@ def gpt_response(user_content, token = 450):
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[system_message, user_message],
-            temperature=0.5,
+            temperature=0.8,
             max_tokens=token
         )
         chat_response = response.choices[0].message.content
@@ -562,7 +559,7 @@ def chat_gpt(messages):
             if is_location_in_uk(location):
                 location += ", UK"
         else:
-            user_content = "Tell the user that they need to include a destination within the UK and provide popular places"
+            user_content = "Tell the user that they need to include a destination within the UK and to check if they capitalized the location."
             return gpt_response(user_content)
 
             
@@ -582,7 +579,7 @@ def chat_gpt(messages):
         
 
         # Start with a clear and concise introduction for the itinerary
-        prompt_summary = f"Create a concise travel itinerary for {num_days}-day trip to {location}, including dining, activities, and hotel recommendations.\n"
+        prompt_summary = f"Using your own and the following information, create a very concise travel itinerary for a {num_days}-day trip to {location}, including dining, activities, and hotel recommendations.\n"
         # Add hobbies and interests in a summarized form
         if travel_plan_state.hobby_preferences:
             prompt_summary += f"Hobbies/Interests: {', '.join(travel_plan_state.hobby_preferences)}\n"
@@ -612,7 +609,8 @@ def chat_gpt(messages):
         prompt_summary += "User's request: " + user_input + "\n"
 
         # Sign off with a directive
-        prompt_summary += "Organize the informataion into a detailed, yet concise travel plan. Let users know ratings of businesses and to check opening times themselves."
+        prompt_summary += "Let users know they can ask you questions about the plan, ratings of businesses and to check opening times themselves.\n"
+        prompt_summary += "Keep the plan close to 1200 characters long (You don't have to use all the information provided)"
         print(prompt_summary)
 
         return gpt_response(prompt_summary)
