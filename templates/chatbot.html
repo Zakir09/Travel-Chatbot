@@ -8,6 +8,7 @@
     <style>
         body {
             background-color: #f7f7f7;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
         }
         #chatbox {
             height: 400px;
@@ -75,22 +76,27 @@
             height: 24px; /* Icon size */
         }
         /* Additional styles */
-        .user-message, .bot-message {
+        .user-message {
+            background-color: #ced7d9; /* Lighter grey for better readability */
+            color: #090c10; /* Darker text color for contrast */
+            margin-left: auto;
             padding: 8px 12px;
             border-radius: 12px;
             display: inline-block;
             max-width: 80%;
             word-wrap: break-word;
         }
-        .user-message {
-            background-color: #e7f3ff;
-            margin-left: auto;
-        }
         .bot-message {
-            background-color: #f1f0f0;
+            background-color: #1c1c1c; /* Dark background for the bot */
+            color: #fff; /* White text for contrast */
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            max-width: 80%;
+            word-wrap: break-word;
         }
         .message, .bot {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         .message {
             display: flex;
@@ -100,22 +106,10 @@
             display: flex;
             justify-content: flex-start;
         }
-        .day-heading {
-            font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
         .activity-item {
-            margin-left: 20px;
-            margin-bottom: 5px;
-        }
-
-        .meal-option, .hotel-recommendation {
-            margin-left: 20px;
-            margin-bottom: 5px;
-            font-style: italic;
+            margin: 5px 0;
+            padding: 4px;
+            border-left: 3px solid #3498db; /* Add a blue left border for activity items */
         }
 
         .prompt-box {
@@ -137,12 +131,6 @@
         .back-arrow {
             color: black; /* Ensures the icon is black */
         }
-
-
-/* You might already have some of these styles; adjust them as needed */
-
-
-
         /* Adjust button sizes based on screen width */
         @media (max-width: 576px) { /* Bootstrap's small breakpoint */
             .new-destination-btn, #sendButton {
@@ -284,6 +272,7 @@
                 chatbox.scrollTop = chatbox.scrollHeight;
 
                 // Send the user input to the Flask app
+                // http://127.0.0.1:8080
                 fetch('/process_input', {
                     method: 'POST',
                     headers: {
@@ -294,11 +283,11 @@
                 .then(response => response.json())
                 .then(data => {
                     // Split the response into sentences for detailed formatting.
-                    let sentences = data.response.split('. ');
-                    let formattedResponse = sentences.map(sentence => `<div class="activity-item">${sentence.trim()}.</div>`).join('');
-                    
-                    // Remove the trailing </div>. from the last sentence if it ends with it (due to split adding an extra dot).
-                    formattedResponse = formattedResponse.replace(/<\/div>\.$/, '</div>');
+                    let formattedResponse = data.response
+                        .replace(/Day (\d+):/g, '<br><strong>Day $1:</strong>') // Inserts a line break before each "Day [number]:"
+                        .split('. ')
+                        .map(sentence => `<div class="activity-item">${sentence.trim()}.</div>`)
+                        .join('');
 
                     // Display the bot response in the chatbox with new formatting
                     var botResponse = document.createElement('div');
@@ -314,6 +303,7 @@
                     chatbox.scrollTop = chatbox.scrollHeight;
                     chatbox.removeChild(spinnerDiv); // Remove spinner from the chatbox
                 })
+
                 .catch(error => {
                     console.error('Error:', error);
 

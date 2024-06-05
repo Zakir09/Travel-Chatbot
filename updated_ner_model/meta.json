@@ -126,10 +126,12 @@
 
     ],
     "ner":[
+      "ACTIVITY",
       "CARDINAL",
       "DATE",
       "EVENT",
       "FAC",
+      "FOOD",
       "GPE",
       "LANGUAGE",
       "LAW",

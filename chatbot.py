@@ -21,6 +21,9 @@ yelp_api_key = os.getenv('YELP_API_KEY')
 google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 opencage_api_key = os.getenv('OPENCAGE_API_KEY')
 
+# Initialize memory
+conversation_history = []
+
 client = OpenAI(
     api_key=open_ai_key,
 )
@@ -73,7 +76,7 @@ travel_plan_state = TravelPlanState()
 
 def get_lemmas(word):
     lemmas = set()
-    for syn in wn.synsets(word, pos=wn.NOUN):  # Consider using other POS tags if relevant
+    for syn in wn.synsets(word, pos=wn.NOUN):
         for lemma in syn.lemmas():
             lemmas.add(lemma.name().replace('_', ' ').lower())
     return lemmas
@@ -112,7 +115,7 @@ def get_extended_synonyms(word):
         "nature": {"nature", "outdoors", "wilderness", "scenery", "natural", "environment"}
     }
 
-    synonyms = get_lemmas(word)  # Your existing lemma generation
+    synonyms = get_lemmas(word)  # existing lemma generation
     manual_related = manual_synonyms.get(word, set())
     return synonyms.union(manual_related)
 
@@ -131,50 +134,36 @@ def extract_information(user_input):
     print("Processing input:", user_input)  # To see exactly what is being processed
     doc = nlp(user_input)
     matcher = Matcher(nlp.vocab)
-
     print("Recognized entities and their labels:")
     for ent in doc.ents:
         print(f"{ent.text} ({ent.label_})")
+
+    food_preferences = set()
+    activity_preferences = set()
+    hobby_preferences = set()
+    location = travel_plan_state.location   
+
+
     # Extract location
-    location = travel_plan_state.location
     for ent in doc.ents:
         if ent.label_ == "GPE":  # GPE stands for geopolitical entity
             if ent.text != "UK" and is_location_in_uk(ent.text):
                 travel_plan_state.update_preferences(location=ent.text)
                 location = travel_plan_state.location 
                 break
-    
     if location:
         print(f"Extracted location: {location}")
     else:
         print("No suitable location found.")
 
+    for ent in doc.ents:
+        if ent.label_ in ["FOOD"]:
+            food_preferences.add(ent.text)
+        elif ent.label_ in ["ACTIVITY"]:
+            activity_preferences.add(ent.text)
+
      # Combine token texts to catch multi-word preferences
     text = [token.text.lower() for token in doc]
-    combined_text = ' '.join(text)
-
-    food_preferences = set()
-    activity_preferences = set()
-    hobby_preferences = set()
-
-    # Define multi-word and single-word preferences
-    food_keywords = [
-        "italian", "chinese", "mexican", "indian", "japanese", "thai", "french", "mediterranean",
-        "american", "bbq", "vegan", "vegetarian", "seafood", "steakhouse", "cafe", "buffet",
-        "pub", "fast food", "food truck", "fusion", "gourmet", "tapas", "diner", "sushi",
-        "halal", "korean", "vietnamese", "spanish", "greek", "lebanese", "turkish",
-        "ethiopian", "caribbean", "peruvian", "brazilian", "african", "european",
-        "gluten free", "bakery", "patisserie", "gelato", "ice cream", "dessert", "coffee",
-        "bistro", "pizzeria", "burger", "pasta", "dim sum", "noodle", "ramen",
-        "taco", "burrito", "pizza", "kebab", "falafel", "soul food", "farm to table",
-        "polish", "russian", "belgian", "argentinian", "chilean", "salvadoran", "cuban",
-        "filipino", "indonesian", "malaysian", "mongolian", "moroccan", "persian",
-        "scandinavian", "swiss", "ukrainian", "venezuelan", "lactose free",
-        "paleo", "raw", "smoothies", "juice bar", "organic", "locally sourced",
-        "health food", "ayurvedic", "kosher", "middle eastern", "nordic", "portuguese",
-        "sri lankan", "tibetan", "welsh", "scottish", "irish", "hawaiian", "jamaican",
-        "raw vegan", "whole food", "low carb", "pescatarian", "flexitarian"
-    ]
 
     hobby_to_activity_map = {
         "hiking": ["trail walking", "mountain trekking", "nature trails", "forest hiking"],
@@ -208,39 +197,7 @@ def extract_information(user_input):
         "theater": ["theater venue", "performing arts center", "opera house", "improvisational theater", "puppet theater", "amphitheater"],
         "nature":["lakefront", "river path", "waterfall trail", "nature preserve", "bird sanctuary", "botanical garden", "reservoir area"]
     }
-
-
-
-    activity_keywords = [
-        "hike", "shopping", "museum", "theme park", "beach", "concert", "cinema", 
-        "historical site", "zoo", "art gallery", "bar", "nightclub", "spa", "golf", 
-        "amusement park", "aquarium", "botanical garden", "casino", "cultural center", 
-        "observatory", "winery", "brewery", "cruise", "festival", "lake", "river", 
-        "waterfall", "rock climbing", "kayaking", "canoeing", "sailing", "fishing", 
-        "skiing", "snowboarding", "ice skating", "horse riding", "camping", "glamping", 
-        "nature walk", "bird watching", "cycling", "mountain biking", "yoga", "pilates", 
-        "fitness class", "sports event", "football", "basketball", "baseball", "soccer", 
-        "tennis", "running", "marina", "sunset watch", "photography", "picnic", "scenic view", 
-        "monument", "landmark", "street art", "mural", "workshop", 
-        "cooking class", "dance class", "language class", "escape room", "virtual reality", 
-        "arcade", "trampoline", "skateboarding", "roller skating", "adventure", "zip lining",
-        "paddleboarding", "wild swimming", "garden visit", "castle tour", "pottery class",
-        "tea tasting", "coffee tasting", "cheese tasting", "chocolate workshop", "ghost tour",
-        "literary tour", "film tour", "farm visit", "market", "antique hunting", "craft fair",
-        "biking", "painting class", "drawing class", "sculpture class", "photography class",
-        "distillery tour", "cider tasting", "laser tag", "bowling", "mini golf", "go karting", "bumper car", "board game cafe",
-        "paintball", "aquapark", "roller disco", "karaoke", "bouldering", "indoor skydiving",
-        "theme restaurant", "magic show", "puppet show", "ice bar", "dinner theater",
-        "comedy club", "jazz club", "planetarium", "murder mystery dinner", "virtual reality",
-        "axe throwing", "rooftop cinema", "drive-in movie", "immersive experience", "VR",
-        "bubble soccer", "indoor surfing", "hovercraft experience", "zorbing", "treasure hunt",
-        "escape game", "airsoft", "live music venue", "open mic night", "silent disco",
-        "nerf battle", "drone racing", "video game lounge", "animation workshop", "sailing experience",
-        "craft workshop", "DIY pottery studio", "soap making workshop", "perfume making workshop",
-        "cocktail making class", "sushi making class", "chocolate making class", "bread baking workshop"
-    ]
-
-
+    
     # Lemmatize user input
     lemmatized_text = " ".join([token.lemma_ for token in doc])
 
@@ -253,13 +210,6 @@ def extract_information(user_input):
             activity_preferences.add(selected_activity)
             selected_hobby = hobby
             hobby_preferences.add(selected_hobby)
-
-    for preference in food_keywords + activity_keywords:
-        if preference in combined_text:
-            if preference in food_keywords and preference not in travel_plan_state.food_preferences:
-                food_preferences.add(preference)
-            elif preference in activity_keywords and preference not in travel_plan_state.activity_preferences:
-                activity_preferences.add(preference)
 
     # Convert from set to list before updating to maintain consistency with your TravelPlanState structure
     food_preferences = list(food_preferences)
@@ -335,17 +285,22 @@ def get_yelp_data(query, location, min_rating = 4.2, limit=40, radius=10000):
         return None
 
 def remove_duplicates(places):
-        unique_places = {}
+    unique_places = {}
+    if places:
         for place in places:
             if place['id'] not in unique_places:
                 unique_places[place['id']] = place
         print(f"Removed duplicates: {len(unique_places)} unique places found after processing.")
         return list(unique_places.values())
+    else:
+        print("Nothing within the list.")
+        return []
+
 
 def get_activity_options(activity_preferences, location, num_days):
     general_search_term = "activities"
     print("Starting to fetch general activities...")  # Initial debug statement
-    general_activities = get_yelp_data(general_search_term, location, limit=40)
+    general_activities = get_yelp_data(general_search_term, location, limit=40) or []
     
     if general_activities:
         print(f"Found {len(general_activities)} general activities.")
@@ -358,7 +313,7 @@ def get_activity_options(activity_preferences, location, num_days):
     for preference in activity_preferences:
         print(f"\nProcessing activity preference: {preference}")
         if preference.lower() != general_search_term:
-            specific_results = get_yelp_data(preference, location, limit=40)
+            specific_results = get_yelp_data(preference, location, limit=40) or []
             if specific_results:
                 print(f"Found {len(specific_results)} specific activities for {preference}.")
                 specific_activities.extend(specific_results)
@@ -400,8 +355,9 @@ def get_activity_options(activity_preferences, location, num_days):
 
         print(f"Final activities for Day {day + 1}: {[activity['name'] for activity in today_activities]}")
         activity_selection.extend(today_activities)
-
+    travel_plan_state.update_plan(activity_options=activity_selection)
     return activity_selection
+
 
 
 def get_meal_options(food_preferences, location, num_days):
@@ -440,9 +396,6 @@ def get_meal_options(food_preferences, location, num_days):
                 meal_options[meal_type].append(selected_place)
     
     return meal_options
-
-
-
 
 
 def get_coordinates(location):
@@ -531,23 +484,52 @@ def is_location_in_uk(location):
         print(f"Geocoding error: {str(e)}")
     return False
 
-def gpt_response(user_content, token = 350):
-    system_content = "You are Lee, a versatile travel chatbot capable of engaging in general conversations and providing helpful responses to users about questions and itineraries on travel destinations in the UK. "
-    system_content += "Remember, you can only advice the user on things that are related to places within the UK. Anything outside you cannot accept."
-    system_message = {"role": "system", "content": system_content}
-    user_message = {"role": "user", "content": user_content}
+def summarize_history(history):
+    """Summarize the conversation history."""
+    context = [{"role": "system", "content": "Summarize the following conversation history in a concise manner:"}]
+    context.extend(history)
     try:
         response = client.chat.completions.create(
             model="gpt-4",
-            messages=[system_message, user_message],
-            temperature=0.8,
-            max_tokens=token
+            messages=context,
+            temperature=1,
+            max_tokens=150  # Adjust based on desired summary length
         )
-        chat_response = response.choices[0].message.content
-        return chat_response
+        summary = response.choices[0].message.content
+        return summary
     except Exception as e:
         return f"Sorry, I encountered an issue: {str(e)}"
 
+def gpt_response(user_content, token=350):
+    system_content = "Hi there! I'm Lee, your go-to travel buddy for all things UK. Whether you're looking for tips, detailed itineraries, or just a chat about the best spots to visit, I'm here to help. "
+    system_content += "Just a heads-up, I'm specialized in destinations within the UK, so that's where I can offer you the best advice. Anything beyond that will be out of my scope, but I’ll do my best to guide you as much as I can within the UK."
+    system_message = {"role": "system", "content": system_content}
+
+    # Create context with conversation history
+    context = [system_message] + conversation_history + [{"role": "user", "content": user_content}]
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=context,
+            temperature=1,
+            max_tokens=token
+        )
+        chat_response = response.choices[0].message.content
+        
+        # Append user input and bot response to conversation history
+        conversation_history.append({"role": "user", "content": user_content})
+        conversation_history.append({"role": "assistant", "content": chat_response})
+        
+        # Limit history length to maintain performance
+        if len(conversation_history) > 5:  # Example limit, adjust as necessary
+            summarized_message = summarize_history(conversation_history)
+            conversation_history.clear()
+            conversation_history.append({"role": "assistant", "content": summarized_message})
+        
+        return chat_response
+    except Exception as e:
+        return f"Sorry, I encountered an issue: {str(e)}"
 
 def chat_gpt(messages):
     user_input = messages
@@ -610,30 +592,9 @@ def chat_gpt(messages):
 
         # Sign off with a directive
         prompt_summary += "Let users know they can ask you questions about the plan, ratings of businesses and to check opening times themselves.\n"
-        prompt_summary += "Keep the plan close to 1200 characters long (You don't have to use all the information provided)"
+        prompt_summary += "Keep the response close to 1200 characters long (You don't have to use all the information provided if it won't fully fit)"
         print(prompt_summary)
 
         return gpt_response(prompt_summary)
     else:
         return gpt_response(user_input, token=250)
-
-# user_input = "I want to go to Lake District for a day."
-# doc = nlp(user_input)
-# print("Recognized entities and their labels:")
-# for ent in doc.ents:
-#     print(f"{ent.text} ({ent.label_})")
-# # Extract location
-# location = None
-# for ent in doc.ents:
-#     if ent.label_ == "GPE":  # GPE stands for geopolitical entity
-#         location = ent.text
-#         if location == "uk":
-#             location = None
-#         break
-
-# if location:
-#     print(f"Extracted location: {location}")
-# else:
-#     print("No suitable location found.")
-# location += ", UK"
-# is_location_in_uk(location)
