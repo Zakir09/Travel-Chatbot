@@ -1,1 +1,25 @@
 ﻿# Project: AI UK Travel Guide Chatbot
+
+## 📚 Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Running Locally](#running-locally)
+4. [Usage](#usage)
+5. [Architecture](#architecture)
+   - [System Components](#system-components)
+   - [Folder Structure](#folder-structure)
+6. [Technical Implementation](#technical-implementation)
+   - [NLP & AI Techniques](#nlp--ai-techniques)
+   - [API Integration](#api-integration)
+   - [User Interface Design](#user-interface-design)
+7. [Testing](#testing)
+8. [Evaluation & Results](#evaluation--results)
+9. [Limitations & Future Work](#limitations--future-work)
+10. [How to Contribute](#how-to-contribute)
+11. [License](#license)
+12. [Acknowledgements](#acknowledgements)
+13. [Contact](#contact)
