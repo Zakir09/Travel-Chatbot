@@ -1,6 +1,8 @@
 ﻿# Project: AI UK Travel Guide Chatbot
 
-## 📚 Table of Contents
+<img src="assets/banner.gif" alt="banner" width="600">
+
+## Table of Contents
 
 1. [Project Overview](#project-overview)
 2. [Features](#features)
@@ -23,7 +25,7 @@
 
 ---
 
-<h2 id="project-overview">📍 Project Overview</h2>
+<h2 id="project-overview">Project Overview</h2>
 
 Planning a trip can feel overwhelming, especially with a flood of travel blogs, booking sites, and endless search results at your fingertips. Imagine if organising a trip to the UK felt more like chatting with a knowledgeable friend. That’s the core idea behind this project. Someone who understands your preferences, knows where to find the best food, and can offer real-time suggestions for places to explore.
 
