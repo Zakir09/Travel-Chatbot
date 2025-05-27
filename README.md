@@ -132,5 +132,5 @@ Before you begin, make sure you have the following installed:
 If you’re looking for a detailed overview of the project, complete with technical specifics, evaluations, and background information, check out my full dissertation report
 
 <a href="assets/Ahmed_Zakir_Report.pdf" target="_blank" rel="noopener noreferrer">
-  Ahmed Zakir — AI UK Travel Guide Chatbot Dissertation (PDF)
+  Zakir Ahmed — AI UK Travel Guide Chatbot Dissertation (PDF)
 </a>
