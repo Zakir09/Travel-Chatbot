@@ -4,24 +4,15 @@
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Features](#features)
-3. [Live Demo](#live-demo)
-4. [Getting Started](#getting-started)
-   - [Prerequisites](#prerequisites)
-   - [Installation](#installation)
-   - [Running Locally](#running-locally)
-5. [Usage](#usage)
-6. [Architecture](#architecture)
-   - [System Components](#system-components)
-   - [Folder Structure](#folder-structure)
-7. [Technical Implementation](#technical-implementation)
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Live Demo](#live-demo)
+- [Getting Started](#getting-started)
+- [Technical Implementation](#technical-implementation)
    - [NLP & AI Techniques](#nlp--ai-techniques)
    - [API Integration](#api-integration)
    - [User Interface Design](#user-interface-design)
-8. [Testing](#testing)
-9. [Evaluation & Results](#evaluation--results)
-10. [Limitations & Future Work](#limitations--future-work)
+- [Limitations & Future Work](#limitations--future-work)
 
 ---
 
@@ -70,3 +61,74 @@ Meanwhile, here are some screenshots showcasing the project in action:
 
 ![Demo screenshot 3](assets/demo-3.png) 
 *Example interaction with the AI Travel Guide chatbot.*
+
+---
+
+<h2 id="getting-started">Getting Started</h2>
+
+Follow these steps to get the AI Travel Guide chatbot running on your local machine.
+
+### Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- [Python 3.x](https://www.python.org/downloads/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+### Installation
+
+1. **Unzip the project folder** if it was provided as a `.zip` file.
+2. **Open the folder** named `Synoptic-Project` in Visual Studio Code.
+3. **Open a new terminal** inside VS Code:  
+   Go to `Terminal > New Terminal`.
+
+4. **Create a virtual environment** by running:
+
+   ```bash
+   python -m venv myenv
+   ```
+5. **Activate the virtual environment** by running:
+
+   **Windows:**
+   ```bash
+   myenv\Scripts\activate
+   ```
+
+   **Mac/Linux:**
+   ```bash
+   source myenv/bin/activate
+   ```
+6. **Install the dependencies** by running:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+7. **Verify your packages** are installed correctly by running:
+
+   ```bash
+   pip list
+   ```
+
+### Running Locally
+
+1. **Start the application** by running in terminal:
+
+   ```bash
+   python runserver.py
+   ```
+2. **Open your browser** and go to:
+
+   ```cpp
+   http://127.0.0.1:8080
+   ```
+3. **Access the chatbot** by clicking the "Let's Chat" button or navigating from the navbar.
+4. When you're done, **stop the server** by pressing `Ctrl + C`
+5. **Deactivate** the virtual environment by running:
+
+   ```bash
+   deactivate
+   ```
+
+
+
+   
