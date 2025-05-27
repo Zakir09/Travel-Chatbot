@@ -8,11 +8,7 @@
 - [Features](#features)
 - [Live Demo](#live-demo)
 - [Getting Started](#getting-started)
-- [Technical Implementation](#technical-implementation)
-   - [NLP & AI Techniques](#nlp--ai-techniques)
-   - [API Integration](#api-integration)
-   - [User Interface Design](#user-interface-design)
-- [Limitations & Future Work](#limitations--future-work)
+- [Detailed Report](#detailed-report)
 
 ---
 
@@ -129,6 +125,7 @@ Before you begin, make sure you have the following installed:
    deactivate
    ```
 
+---
 
-
-   
+If you’re looking for a detailed overview of the project, complete with technical specifics, evaluations, and background information, check out my full dissertation report
+[Ahmed Zakir — AI UK Travel Guide Chatbot Dissertation (PDF)](assets/Ahmed_Zakir_Report.pdf)
