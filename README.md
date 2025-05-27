@@ -127,5 +127,7 @@ Before you begin, make sure you have the following installed:
 
 ---
 
+<h2 id="detailed-report">Detailed Report</h2>
+
 If you’re looking for a detailed overview of the project, complete with technical specifics, evaluations, and background information, check out my full dissertation report
 [Ahmed Zakir — AI UK Travel Guide Chatbot Dissertation (PDF)](assets/Ahmed_Zakir_Report.pdf)
