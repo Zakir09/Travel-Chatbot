@@ -40,6 +40,19 @@ I ran into a few bumps while training and rolling out a tailored spaCy NER model
 
 In the long run, the chatbot evolved from a simple tech development into a great illustration of how artificial intelligence can help with everyday tasks, like planning a trip, making them easier, more relatable, and even a bit of fun.
 
+---
+
+<h2 id="features">Features</h2>
+
+- **Conversational AI with Advanced NLP:** </br> The chatbot uses a finely-tuned NER model, built on spaCy’s `en-core-web-sm`, to effectively pinpoint locations, food, and activities from what users ask. This allows for smooth, human-like conversations that are specifically designed for UK travel. </br>
+- **Personalised Recommendations:** </br> By keeping an eye on what users prefer during chats, the chatbot tailors its suggestions for things like attractions, dining, places to stay, and transportation. This makes planning a trip feel more personal and enjoyable. </br>
+- **Real-Time Data Integration:** </br> Services such as Google Maps and Yelp tap into external APIs to deliver real-time updates on nearby points of interest, dining options, and events. This ensures that the suggestions you get are not only precise but also timely.
+- **Scalable and Responsive Backend:** </br> The system is built to support numerous users at once and maintains quick response times, usually less than 10 seconds for general enquiries, to ensure seamless and fulfilling interactions.
+- **Accessible and User-Friendly Interface:** </br> With its clean, minimalist design and easy-to-read typography paired with high-contrast chat bubbles, the interface is designed for effortless navigation and readability. It also adheres to accessibility standards, making it user-friendly for everyone, regardless of their needs.
+- **Intuitive Conversation Flow:** </br> Users are guided through trip planning effortlessly with clickable suggestions and contextual responses, making the whole experience feel seamless and engaging, much like having a knowledgeable travel companion to chat with.
+
+
+
 
 
 
