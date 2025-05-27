@@ -51,9 +51,20 @@ In the long run, the chatbot evolved from a simple tech development into a great
 - **Accessible and User-Friendly Interface:** </br> With its clean, minimalist design and easy-to-read typography paired with high-contrast chat bubbles, the interface is designed for effortless navigation and readability. It also adheres to accessibility standards, making it user-friendly for everyone, regardless of their needs.
 - **Intuitive Conversation Flow:** </br> Users are guided through trip planning effortlessly with clickable suggestions and contextual responses, making the whole experience feel seamless and engaging, much like having a knowledgeable travel companion to chat with.
 
+---
 
+<h2 id="live-demo">Live Demo</h2>
 
+You can access the live demo of the AI Travel Guide project [here](https://ai-travel-guide-30f005e79499.herokuapp.com/).  
+*Note: The live demo is currently deactivated to avoid ongoing costs but may be reactivated in the future.*
 
+Meanwhile, here are some screenshots showcasing the project in action:
 
+![Demo screenshot 1](assets/demo-1.png)  
+*Initial Page for AI Travel Guide chatbot.*
 
+![Demo screenshot 2](assets/demo-2.png)  
+*The chatbot generating personalised travel recommendations.*
 
+![Demo screenshot 3](assets/demo-3.png) 
+*Example interaction with the AI Travel Guide chatbot.*
